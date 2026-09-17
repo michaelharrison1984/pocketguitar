@@ -1,0 +1,8 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {chord,bluesChord,makeProgression,scale,scaleNames,palette,PRESETS,mod} from '../public/theory.js';
+test('G I V vi IV chord spellings and thirds',()=>{const p=makeProgression(7,'folk',[0,4,5,3],false);assert.deepEqual(p.map(c=>c.name),['G','D','Em','C']);assert.deepEqual(p.map(c=>c.tones[1]),[11,6,7,4]);});
+test('diatonic triads and seventh chords stay in their scale in all keys',()=>{for(let k=0;k<12;k++)for(const m of ['major','minor'])for(let d=0;d<7;d++)for(const seventh of [true,false]){const c=chord(k,m,d,seventh);assert.equal(new Set(c.tones).size,seventh?4:3);assert.ok(c.tones.every(n=>scale(k,m).includes(n)));assert.equal(c.tones[0],scale(k,m)[d]);}});
+test('seventh quality and correct enharmonic scale spelling',()=>{assert.equal(chord(0,'major',0,true).name,'Cmaj7');assert.equal(chord(0,'major',4,true).name,'G7');assert.equal(chord(0,'major',6,true).name,'Bm7♭5');assert.deepEqual(scaleNames(6,'major'),['F♯','G♯','A♯','B','C♯','D♯','E♯']);assert.deepEqual(scaleNames(1,'minor'),['D♭','E♭','F♭','G♭','A♭','B𝄫'.replace('𝄫','♭♭'),'C♭']);});
+test('12 bar blues uses dominant chords rather than diatonic maj7 chords',()=>{const p=makeProgression(9,'blues',PRESETS.blues.patterns[0],false);assert.equal(p.length,12);assert.deepEqual(p.map(c=>c.name),['A7','A7','A7','A7','D7','D7','A7','A7','E7','D7','A7','E7']);for(let k=0;k<12;k++)for(let d=0;d<3;d++){const c=bluesChord(k,d);assert.deepEqual(c.tones.map(n=>mod(n-c.root)),[0,4,7,10]);}});
+test('pentatonic and blues palettes',()=>{assert.deepEqual(palette(7,'major','pent'),[7,9,11,2,4]);assert.deepEqual(palette(9,'minor','blues'),[9,0,2,3,4,7]);});

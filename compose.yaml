@@ -1,0 +1,8 @@
+services:
+  guitar-practice:
+    build: .
+    image: pocket-guitar:local
+    container_name: guitar-practice
+    ports:
+      - "8088:80"
+    restart: unless-stopped

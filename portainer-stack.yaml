@@ -1,0 +1,16 @@
+# Extract the downloaded folder to /opt/guitar-practice on your Docker host first.
+services:
+  guitar-practice:
+    image: nginx:stable-alpine
+    container_name: guitar-practice
+    ports:
+      - "8088:80"
+    volumes:
+      - /opt/guitar-practice/public:/usr/share/nginx/html:ro
+      - /opt/guitar-practice/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3

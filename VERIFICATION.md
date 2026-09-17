@@ -1,18 +1,17 @@
-# Verification
+# Verification — 1.1.0
 
 Completed:
-- JavaScript syntax checks for app and audio modules.
-- Eight automated tests: G progression and target thirds; diatonic chords in all keys; seventh chord qualities and enharmonic spelling; dominant 12-bar blues; scale palettes; audio-clock chord changes and looping; count-in and two-bar slots; stop cancelling scheduled events and sound sources.
-- Static files served successfully over a local HTTP server.
+- JavaScript syntax checks for the app and audio modules.
+- Music theory and audio scheduling regression tests, including every built-in progression in all 12 keys, all three accompaniment modes and both triad/seventh settings.
+- Tests for invalid accompaniment fallback, stalled scheduler recovery and a pitched note envelope that sustains before releasing.
+- Removal of the flourish tab, content, event handlers and routine references.
 
 Limitations:
-- Docker is not installed in the build environment, so the Docker image and Portainer stack were not executed here.
-- Full interactive browser and visual verification could not run because Chromium was unavailable and its download timed out. The audio tests exercise scheduling using a simulated audio clock; they do not assess perceived sound quality.
+- Docker and an interactive browser are unavailable in the build environment; the container and UI have not been run here.
+- Audio tests verify scheduled pitches, note durations and Web Audio envelope commands using test doubles. They do not establish perceived sound quality on your speakers or reproduce your particular tapping issue.
 
-After deploying, check:
-1. Press Play with Count in enabled. Hear four count-in beats before G begins.
-2. Confirm the chord targets advance G → D → Em → C and loop.
-3. Press Stop and confirm audio stops.
-4. Switch to A blues and confirm the 12-slot dominant seventh progression.
-5. Tap a fretboard note, load a flourish exercise and try an ear question.
-6. Save a setup, refresh, then load it again.
+After updating:
+1. Refresh the page (Ctrl+F5 if necessary). There should be three tabs: Jam room, Practice path and Ear trainer.
+2. Disable Percussion and Metronome, select Gentle strum, and play G–D–Em–C. Each chord should be clearly pitched and sustained.
+3. Try Minor and Blues, then re-enable percussion. It should remain quieter than the chord backing.
+4. Confirm your saved setups and practice notes remain present when using the same browser and address.

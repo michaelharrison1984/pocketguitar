@@ -1,6 +1,6 @@
 # Pocket Guitar
 
-A self-hosted guitar practice room for learning to solo through chord changes and add movement to rhythm playing. Designed for short, focused sessions, with G major as the default.
+A self-hosted guitar practice room for learning to solo through chord changes and connect musical phrases across progressions. Designed for short, focused sessions, with G major as the default.
 
 ## Start with Docker Compose
 
@@ -51,7 +51,7 @@ unzip pocket-guitar-docker.zip -d /opt
 4. Set Focus to **Roots only**, then play G, D, E and C as each chord arrives.
 5. Switch to **The third**: target **B, F♯, G and E** instead. Arrive on beat 1 and let the note ring.
 6. Add one or two connecting notes, keeping the landing note and the rhythm deliberate.
-7. Try **Chord flourishes → Walk from G to C** for your rhythm practice.
+7. Try **Practice path → Connect the nearest targets** to link the chords in one area of the neck.
 
 The app suggests resting notes; it does not listen to or score your guitar. Tap a fretboard note to hear its pitch. Standard tuning only, high e at the top. The left-handed option reverses the horizontal fret direction.
 
@@ -61,7 +61,6 @@ The app suggests resting notes; it does not listen to or score your guitar. Tap 
 - **Backing band:** synthesised chords and bass, optional simple percussion and metronome, straight/shuffle feel, strum/arpeggio/sustained patterns, 40–180 BPM, count-in, volume and looping. All backing is 4/4.
 - **Chord targets:** current/next chord, roots/thirds/fifths/sevenths, nearby-note connection suggestions, and a tappable fretboard with selectable fret windows.
 - **Scale overlays:** major/minor pentatonic, full major/natural minor, minor blues or chord tones only. Chord targets are added even when outside the selected scale.
-- **Chord flourishes:** C hammer-on, D suspended chords, G-to-C bass walk, double-stops, strumming pattern and A/A7 blues movement. These are fixed open-position examples; loading an exercise sets its matching key and progression.
 - **Practice path:** six focused lessons plus a 20-minute guided timer and practice journal.
 - **Ear trainer:** distinguish the root, major third and fifth of a major chord. No microphone required.
 - **Saved setups:** save the progression, key, tempo and display settings; restore or delete later.
@@ -104,3 +103,12 @@ node --test tests/*.test.js
 ```
 
 Files: `public/theory.js` handles pitches and chords; `audio.js` schedules sound; `app.js` connects controls, storage and fretboard; `lessons.js` contains exercises; `style.css` handles layout.
+
+
+## Updating to 1.1.0
+
+Replace the app files with this download. For the Portainer bind-mount installation, overwrite `/opt/guitar-practice/public` and refresh the page. The stack configuration is unchanged. For the built image, run `docker compose up -d --build` from the extracted folder.
+
+This release removes the Chord flourishes tab and its exercise data, and replaces the routine's flourish stage with connecting chord tones. The strum sound now uses a richer pitched waveform, longer sustain, a clearer register and quieter percussion. Invalid accompaniment settings fall back to strumming. Late audio scheduling resumes at a future beat instead of playing a burst of old notes. Versioned app/audio links refresh the changed code; Ctrl+F5 is available if your browser still shows the old page.
+
+Saved setups and practice notes keep the same browser storage key and remain available when using the same browser and URL. The backing is still synthesised, not a recorded acoustic guitar.

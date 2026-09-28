@@ -49,7 +49,7 @@ export class Band {
  async start(config){
   await this.init();this.stop(false);
   this.config={...config,pattern:PATTERNS.has(config.pattern)?config.pattern:'strum',bpm:Math.max(40,Math.min(180,Number(config.bpm)||80)),bars:[1,2,4].includes(Number(config.bars))?Number(config.bars):1};
-  this.running=true;this.index=config.count?-4:0;this.next=this.ctx.currentTime+.1;this.events=[];
+  this.running=true;this.index=config.count?-4:0;this.next=this.ctx.currentTime+.1;this.events=[];this.endTime=null;
   this.tick();this.timer=setInterval(()=>this.tick(),25);this.paint();
  }
  tick(){
@@ -58,11 +58,13 @@ export class Band {
   // A busy browser must not dump expired notes into the current audio instant.
   if(this.next<now-.04){const missed=Math.ceil((now+.04-this.next)/spb);this.index+=missed;this.next+=missed*spb;this.events=[];}
   while(this.next<now+.12){
+   if(c.loop===false&&this.index>=total){this.endTime=this.next;break;}
    const step=this.index,beat=((step%4)+4)%4,ci=step<0?-1:Math.floor((step%total)/(c.bars*4));
    this.events.push({time:this.next,ci,beat,bar:step<0?0:Math.floor((step%(c.bars*4))/4)+1});
    if(step<0){this.tone(beat===0?92:86,this.next,.04,.055,'sine');}
    else {
     const chord=c.chords[ci],v=this.voicing(chord),t=this.next;
+    if(c.onSchedule)c.onSchedule({ci,beat,time:t,spb,step});
     if(c.click)this.tone(beat===0?92:86,t,.035,.035,'sine');
     if(beat===0||beat===2)this.tone(36+Number(beat===2?chord.tones[2]:chord.root),t,spb*.95,.1,'triangle');
     if(c.pattern==='pad'&&beat===0)v.forEach(n=>this.pluck(n,t,spb*3.95,.07,true));
@@ -80,6 +82,6 @@ export class Band {
    this.index++;this.next+=spb;
   }
  }
- paint(){if(!this.running)return;const time=this.ctx.currentTime;let e;while(this.events.length&&this.events[0].time<=time)e=this.events.shift();if(e)this.onBeat(e);this.raf=requestAnimationFrame(()=>this.paint());}
+ paint(){if(!this.running)return;const time=this.ctx.currentTime;let e;while(this.events.length&&this.events[0].time<=time)e=this.events.shift();if(e)this.onBeat(e);if(this.endTime!==null&&this.endTime!==undefined&&time>=this.endTime){this.stop();return;}this.raf=requestAnimationFrame(()=>this.paint());}
  stop(notify=true){this.running=false;clearInterval(this.timer);cancelAnimationFrame(this.raf);this.events=[];for(const v of this.voices){try{v.stop();}catch{}}this.voices.clear();if(notify)this.onStop();}
 }

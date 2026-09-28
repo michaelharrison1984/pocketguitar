@@ -42,3 +42,8 @@ test('pitched envelope retains a note body before a smooth release',()=>{
  band.pluck(69,.1,.5,.1);
  assert.equal(o.frequency.value,440);assert.equal(o.wave,band.strings);assert.deepEqual(events.map(e=>+e[1].toFixed(3)),[.1,.108,.18,.5,.6]);assert.ok(events[3][0]>=.03);assert.equal(events[4][0],0);assert.ok(o.stopped>events[4][1]);
 });
+
+test('one-shot playback stops at the end and bar hooks share the backing clock',async()=>{
+ const {band,config}=setup();const hooks=[];
+ try{await band.start({...config,chords:[config.chords[0]],loop:false,onSchedule:e=>hooks.push(e)});clearInterval(band.timer);for(const t of [.11,.61,1.11,1.61,2.11]){band.ctx.currentTime=t;band.tick();band.paint();}assert.equal(band.running,false);assert.deepEqual(hooks.map(e=>e.beat),[0,1,2,3]);assert.deepEqual(hooks.map(e=>e.time),[.1,.6,1.1,1.6]);}finally{band.stop();}
+});

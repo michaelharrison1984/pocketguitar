@@ -1,17 +1,18 @@
-# Verification — 1.1.0
+# Verification — 1.2.0
 
 Completed:
-- JavaScript syntax checks for the app and audio modules.
-- Music theory and audio scheduling regression tests, including every built-in progression in all 12 keys, all three accompaniment modes and both triad/seventh settings.
-- Tests for invalid accompaniment fallback, stalled scheduler recovery and a pitched note envelope that sustains before releasing.
-- Removal of the flourish tab, content, event handlers and routine references.
+- 19 automated tests cover music theory, all original progression/key/accompaniment combinations, scheduling, stop behaviour, one-shot playback, lick transposition in all 12 keys, correct third targets, demo/copy plans and same-string chord connections.
+- Automatic black/white label contrast tested against all palette colours and a 4,096-colour RGB grid: minimum 4.5:1.
+- Headless Chromium integration checks: app startup; all six lick choices and 12 keys; single-play stopping; live Adapt target changing from G/B to C/E; colour persistence and reset; learnt-phrase persistence; saved setup persistence; G-to-C connection targets; player handoff; no JavaScript errors.
+- Desktop and 390px mobile screenshots inspected. Wider fretboards and tabs scroll within their panels rather than overflowing the page; the trainer centres the relevant note positions when rendered.
 
 Limitations:
-- Docker and an interactive browser are unavailable in the build environment; the container and UI have not been run here.
-- Audio tests verify scheduled pitches, note durations and Web Audio envelope commands using test doubles. They do not establish perceived sound quality on your speakers or reproduce your particular tapping issue.
+- Docker is unavailable in this build environment, so the unchanged container configuration was not executed here.
+- Real Web Audio calls run during browser tests, but perceived sound quality on your device was not assessed by listening.
+- There is no microphone capture or automatic playing assessment. Phrase completion marks are your own self-assessment.
 
 After updating:
-1. Refresh the page (Ctrl+F5 if necessary). There should be three tabs: Jam room, Practice path and Ear trainer.
-2. Disable Percussion and Metronome, select Gentle strum, and play G–D–Em–C. Each chord should be clearly pitched and sustained.
-3. Try Minor and Blues, then re-enable percussion. It should remain quieter than the chord backing.
-4. Confirm your saved setups and practice notes remain present when using the same browser and address.
+1. Confirm version 1.2 in the header and the Lick Lab / Connect the changes tabs.
+2. Open Fretboard colours & readability. Try a preset, then adjust a colour and refresh to confirm it persists.
+3. In Lick Lab, start with A little folk answer at 65 BPM, Listen mode. Then try Listen, then copy, followed by Adapt to the changes.
+4. In the Jam room choose Country in G, then open Connect the changes. The first G-to-C transition should show B moving to C.

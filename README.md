@@ -105,10 +105,47 @@ node --test tests/*.test.js
 Files: `public/theory.js` handles pitches and chords; `audio.js` schedules sound; `app.js` connects controls, storage and fretboard; `lessons.js` contains exercises; `style.css` handles layout.
 
 
-## Updating to 1.1.0
+## Earlier release: 1.1.0
 
 Replace the app files with this download. For the Portainer bind-mount installation, overwrite `/opt/guitar-practice/public` and refresh the page. The stack configuration is unchanged. For the built image, run `docker compose up -d --build` from the extracted folder.
 
 This release removes the Chord flourishes tab and its exercise data, and replaces the routine's flourish stage with connecting chord tones. The strum sound now uses a richer pitched waveform, longer sustain, a clearer register and quieter percussion. Invalid accompaniment settings fall back to strumming. Late audio scheduling resumes at a future beat instead of playing a burst of old notes. Versioned app/audio links refresh the changed code; Ctrl+F5 is available if your browser still shows the old page.
 
 Saved setups and practice notes keep the same browser storage key and remain available when using the same browser and URL. The backing is still synthesised, not a recorded acoustic guitar.
+
+
+## New in 1.2.0 — Lick Lab, chord connections and readable fretboards
+
+### Lick Lab
+
+Six original one-bar phrases cover major-pentatonic melody, country double-stops, a chord-tone run, minor pentatonic, blues major/minor colour and a descending major-scale phrase.
+
+1. Choose a phrase. Its original key is loaded automatically.
+2. Set 40–140 BPM; start at 55–65 BPM.
+3. **Listen to the lick:** a four-beat count-in, then the phrase over its home chord. Uncheck Loop practice for a single pass.
+4. **Listen, then copy:** one demo bar followed by one bar for you over the same chord. The lead guide is silent during your turn.
+5. **Adapt to the changes:** each chord gets a demo and copy bar. The last note changes to the current chord's third. The earlier notes remain unchanged and can create tension; listen to the resolution.
+
+Tab, fretboard and audio transpose together in all 12 keys. Transposition moves the original shape up the neck, sometimes to a higher register. The explanatory paragraph describes the original key; the target callout and tab always show your selected key. Each tab column is half a beat, and two frets in the same column are played together. A horizontal line indicates a held note, not another attack. All phrases use straight eighths; blues phrasing here does not automatically use shuffle.
+
+The note order appears under the fretboard labels. Square markers identify the final target. Audio and tab highlighting continue through your copy bar to guide your timing. “Comfortable with this phrase” records your own assessment per phrase; there is no microphone scoring.
+
+### Connect the changes
+
+Set up a progression in the Jam room, then open Connect the changes. The progression is copied automatically each time you enter. Choose a chord change, source/arrival tones and fret window. The app finds a short move on one string.
+
+Play A on beat 4 of the first bar and B on beat 1 of the second. These are step labels, not note names. The target callout gives the actual note names, strings and frets. A shared note may remain at the same fret across the chord change. Uncheck “Play target-note guide” to practise with only the chord backing and optional click. Add your own approach notes when the connection feels easy.
+
+### Fretboard colours and readability
+
+Open **Fretboard colours & readability** above the tabs' content. Choose High contrast, Warm / purple, Light fretboard or Original greens. You can customise the board, roots/targets, chord/phrase notes, scale notes and string/fret lines, plus select standard or large markers.
+
+Note-label text automatically changes to black or white for readable contrast against the chosen note fill. Root/target markers are square; other notes are round, with dashed borders for scale notes. Focus notes use an extra outline instead of fading the other notes almost away. Custom colours can still make categories look alike; use a preset or Reset if you lose visual separation.
+
+Appearance preferences save separately from musical setups and apply across all three fretboards. Existing setups and practice notes keep their original storage key. Lick completion marks have their own browser storage entry. None of these are synced between devices.
+
+### Install this update
+
+For Portainer bind mounts, copy all files from the updated `public` folder into `/opt/guitar-practice/public`, replacing the existing files. There are new JavaScript modules, so copy the whole folder rather than only app.js. Then refresh the page; use Ctrl+F5 if needed. No stack changes are required.
+
+For the built Docker image, replace the source files and run `docker compose up -d --build`. The header should show version 1.2. The backing sound remains synthesised. Master volume is set in the Jam room and shared by the two trainers. Only one backing player runs at a time; changing practice sections stops trainer playback.

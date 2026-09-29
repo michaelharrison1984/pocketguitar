@@ -1,18 +1,20 @@
-# Verification — 1.2.0
+# Verification — 1.3.0
 
 Completed:
-- 19 automated tests cover music theory, all original progression/key/accompaniment combinations, scheduling, stop behaviour, one-shot playback, lick transposition in all 12 keys, correct third targets, demo/copy plans and same-string chord connections.
-- Automatic black/white label contrast tested against all palette colours and a 4,096-colour RGB grid: minimum 4.5:1.
-- Headless Chromium integration checks: app startup; all six lick choices and 12 keys; single-play stopping; live Adapt target changing from G/B to C/E; colour persistence and reset; learnt-phrase persistence; saved setup persistence; G-to-C connection targets; player handoff; no JavaScript errors.
-- Desktop and 390px mobile screenshots inspected. Wider fretboards and tabs scroll within their panels rather than overflowing the page; the trainer centres the relevant note positions when rendered.
+- 25 automated tests: music theory, all built-in accompaniment/key combinations, timing and looping, next-chord selectors, shared tones, expressive lick transposition, adapted final targets, shuffle timing, articulation scheduling and automatic text contrast.
+- Headless Chromium integration checks: upcoming all/root/third options, current/shared/next-only markers, colour and checkbox persistence, live option changes without stopping playback, chord changes and wraparound, absence of separate Connect tab, expressive tab notation, single-play stopping, Adapt mode and shuffle playback, all six phrases in all 12 keys, no page JavaScript errors.
+- Real OfflineAudioContext rendered bend/release, hammer-on and slide/vibrato examples. All produced non-silent audio. Unit tests additionally check target frequencies, continuous pitch changes and single-attack legato behaviour.
+- Desktop Jam room and Lick Lab screenshots inspected. Mobile layout checked at 390px without page-level horizontal overflow; wide tab and fretboard panels scroll internally.
+- A playback highlight error discovered in the first integration run was corrected; the repeated browser run passed.
 
-Limitations:
-- Docker is unavailable in this build environment, so the unchanged container configuration was not executed here.
-- Real Web Audio calls run during browser tests, but perceived sound quality on your device was not assessed by listening.
-- There is no microphone capture or automatic playing assessment. Phrase completion marks are your own self-assessment.
+Limits:
+- Docker is unavailable here; the unchanged container configuration has not been executed in this environment.
+- Tests verify audio generation and pitch/timing behaviour, not perceived realism on your speakers. The lead remains a synthesised practice guide.
+- No microphone capture or automatic assessment of your guitar playing.
 
-After updating:
-1. Confirm version 1.2 in the header and the Lick Lab / Connect the changes tabs.
-2. Open Fretboard colours & readability. Try a preset, then adjust a colour and refresh to confirm it persists.
-3. In Lick Lab, start with A little folk answer at 65 BPM, Listen mode. Then try Listen, then copy, followed by Adapt to the changes.
-4. In the Jam room choose Country in G, then open Connect the changes. The first G-to-C transition should show B moving to C.
+Quick checks after updating:
+1. Confirm version 1.3 in the header and four tabs: Jam room, Lick Lab, Practice path, Ear trainer.
+2. In G Country, enable upcoming targets. Over G, C/E should use the upcoming colour while shared G keeps its current fill and gains a ring.
+3. Try Third only: E should be the target for the upcoming C chord. Let playback advance and check that the targets follow the next chord.
+4. In Lick Lab, try Pedal-steel country answer, then Minor blues bend & reply at 60–65 BPM. Watch the technique markings and listen for pitch movement.
+5. Use Adapt mode: the final target changes while the opening techniques stay intact.

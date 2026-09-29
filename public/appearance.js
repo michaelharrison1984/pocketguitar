@@ -1,8 +1,8 @@
 export const PALETTES={
- contrast:{board:'#080b10',root:'#ffdf00',chord:'#00d5ff',scale:'#f1f5f9',lines:'#8190a4'},
- warm:{board:'#1a1722',root:'#ffb454',chord:'#beafff',scale:'#d9e2e7',lines:'#8d839d'},
- light:{board:'#faf8f0',root:'#905100',chord:'#005a98',scale:'#30483f',lines:'#74746c'},
- original:{board:'#101819',root:'#d2ee93',chord:'#83cfc7',scale:'#52635f',lines:'#8b9995'}
+ contrast:{upcoming:'#ff83df',board:'#080b10',root:'#ffdf00',chord:'#00d5ff',scale:'#f1f5f9',lines:'#8190a4'},
+ warm:{upcoming:'#79efca',board:'#1a1722',root:'#ffb454',chord:'#beafff',scale:'#d9e2e7',lines:'#8d839d'},
+ light:{upcoming:'#a00067',board:'#faf8f0',root:'#905100',chord:'#005a98',scale:'#30483f',lines:'#74746c'},
+ original:{upcoming:'#eda6eb',board:'#101819',root:'#d2ee93',chord:'#83cfc7',scale:'#52635f',lines:'#8b9995'}
 };
 export function ink(hex){const rgb=hex.match(/[a-f\d]{2}/gi).map(n=>parseInt(n,16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);const l=rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;return (l+.05)/.05>=1.05/(l+.05)?'#000000':'#ffffff';}
 export function initAppearance(){

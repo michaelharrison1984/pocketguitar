@@ -9,6 +9,8 @@ export class Band {
    this.master.connect(limiter);limiter.connect(this.ctx.destination);
    // Fundamental plus gentle upper harmonics: audible pitch even on small speakers.
    this.strings=this.ctx.createPeriodicWave(new Float32Array(7),new Float32Array([0,1,.42,.22,.12,.065,.035]));
+   this.twangStrings=this.ctx.createPeriodicWave(new Float32Array(9),new Float32Array([0,1,.65,.38,.28,.18,.12,.08,.04]));
+   this.bluesStrings=this.ctx.createPeriodicWave(new Float32Array(7),new Float32Array([0,1,.18,.4,.08,.17,.03]));
   }
   await this.ctx.resume();
  }
@@ -33,6 +35,48 @@ export class Band {
   g.gain.exponentialRampToValueAtTime(level*(sustain?.55:.32),start+length-.1);
   g.gain.linearRampToValueAtTime(0,start+length);
   o.start(start);o.stop(start+length+.02);this.track(o,g);
+ }
+ lead(midi,time,duration=.6,options={}){
+  const start=Math.max(time,this.ctx.currentTime),length=Math.max(.09,duration),end=start+length;
+  const o=this.ctx.createOscillator(),g=this.ctx.createGain(),filter=this.ctx.createBiquadFilter();
+  const twang=options.tone==='twang',blues=options.tone==='blues';
+  if(twang)o.setPeriodicWave(this.twangStrings);else if(blues)o.setPeriodicWave(this.bluesStrings);else o.setPeriodicWave(this.strings);
+  const hz=n=>440*2**((n-69)/12),level=.19*(options.accent||1),target=options.targetMidi;
+  o.frequency.setValueAtTime(hz(midi),start);
+  if(Number.isFinite(target)){
+   const targetHz=hz(target);
+   if(options.tech==='bend'){
+    o.frequency.setValueAtTime(hz(midi),start+length*.08);
+    o.frequency.exponentialRampToValueAtTime(targetHz,start+length*.43);
+    o.frequency.setValueAtTime(targetHz,start+length*(options.release?.62:.95));
+    if(options.release)o.frequency.exponentialRampToValueAtTime(hz(midi),start+length*.87);
+   }else if(options.tech==='slide'){
+    o.frequency.setValueAtTime(hz(midi),start+length*.15);
+    o.frequency.exponentialRampToValueAtTime(targetHz,start+length*.55);
+   }else if(options.tech==='hammer'||options.tech==='pull'){
+    // One picked attack: change pitch quickly without starting a second oscillator.
+    o.frequency.setValueAtTime(hz(midi),start+length*.44);
+    o.frequency.exponentialRampToValueAtTime(targetHz,start+length*.46);
+   }
+  }
+  filter.type='lowpass';filter.Q.value=twang?.8:.45;
+  filter.frequency.setValueAtTime(twang?6500:blues?3500:4200,start);
+  filter.frequency.exponentialRampToValueAtTime(twang?2200:1800,end);
+  o.connect(filter);filter.connect(g);g.connect(this.master);
+  const attack=Math.min(.009,length*.1),release=Math.min(.065,length*.25);
+  g.gain.setValueAtTime(0,start);g.gain.linearRampToValueAtTime(level,start+attack);
+  g.gain.exponentialRampToValueAtTime(level*(twang?.5:.68),start+length*.4);
+  g.gain.exponentialRampToValueAtTime(level*(options.tech==='pull'?.3:.4),end-release);
+  g.gain.linearRampToValueAtTime(0,end);
+  let lfo,depth;
+  if(options.vibrato){
+   lfo=this.ctx.createOscillator();depth=this.ctx.createGain();lfo.frequency.value=5.5;
+   depth.gain.setValueAtTime(0,start);depth.gain.setValueAtTime(0,start+length*.4);depth.gain.linearRampToValueAtTime(blues?22:12,start+length*.65);
+   lfo.connect(depth);depth.connect(o.detune);lfo.start(start);lfo.stop(end+.02);this.voices.add(lfo);
+   lfo.onended=()=>{this.voices.delete(lfo);lfo.disconnect();depth.disconnect();};
+  }
+  o.start(start);o.stop(end+.02);this.voices.add(o);
+  o.onended=()=>{this.voices.delete(o);o.disconnect();filter.disconnect();g.disconnect();};
  }
  track(o,g){this.voices.add(o);o.onended=()=>{this.voices.delete(o);o.disconnect();g.disconnect();};}
  hit(time,kind){

@@ -1,151 +1,129 @@
-# Pocket Guitar
+# Pocket Guitar 1.3
 
-A self-hosted guitar practice room for learning to solo through chord changes and connect musical phrases across progressions. Designed for short, focused sessions, with G major as the default.
+A self-hosted guitar practice room for following chord changes and building musical phrases. Standard tuning, 4/4, no external audio downloads or paid APIs.
 
-## Start with Docker Compose
+## Update an existing installation
 
-Extract the ZIP, open a terminal in the `guitar-practice` folder, then run:
+**Portainer with bind mounts:** copy the entire new `public` folder into `/opt/guitar-practice/public`, replacing existing files. Refresh the browser (Ctrl+F5 if necessary). No stack changes are required. Copy the whole folder: this release adds a JavaScript module.
 
-```sh
-docker compose up -d --build
-```
-
-Open `http://YOUR-SERVER-IP:8088` in your browser. On the same computer, use `http://localhost:8088`.
-
-Change `8088:80` in `compose.yaml` if port 8088 is already occupied. The app has no runtime package installs, external fonts, paid APIs or audio downloads. Docker needs access to pull the Nginx base image the first time.
-
-To update after replacing the source files:
+**Built Docker image:** replace the source files, then run from the extracted folder:
 
 ```sh
 docker compose up -d --build
 ```
 
-To stop:
+The header should display version **1.3**. Settings, saved setups, colours and practice notes remain in the same browser when using the same address. Revised licks have new completion IDs because the exercises changed; their “Comfortable” marks start unchecked. Previous completion entries do not erase your other data.
+
+## First installation
+
+Extract the ZIP and open a terminal in the `guitar-practice` folder:
 
 ```sh
-docker compose down
+docker compose up -d --build
 ```
 
-## Portainer: paste a stack
+Open `http://YOUR-SERVER-IP:8088` (or `http://localhost:8088` on the same machine). Change `8088:80` in the compose file if necessary.
 
-1. Extract the folder onto the **Docker host**, so these files exist:
-   - `/opt/guitar-practice/public/index.html`
-   - `/opt/guitar-practice/nginx.conf`
-2. In Portainer, choose **Stacks → Add stack → Web editor**.
-3. Paste the contents of `portainer-stack.yaml`, then deploy.
-4. Open `http://YOUR-SERVER-IP:8088`.
+For Portainer, extract the folder on the Docker host so `/opt/guitar-practice/public/index.html` and `/opt/guitar-practice/nginx.conf` exist. Add a Stack using the Web editor and paste `portainer-stack.yaml`. Change both host paths if you use a different folder. Use Docker Standalone; with Swarm, bind-mounted files must exist on each relevant node.
 
-If you use another folder, change both host paths in the stack. Uploading the ZIP to your PC alone does not put the files on the Docker host. The Portainer option serves the provided files using the standard Nginx image; it does not require a locally built image. Use Docker Standalone, not a Swarm deployment with files present on only one node.
+The image needs to be pulled initially. The running app then serves local files, with no external fonts or audio services. To stop a Compose installation, run `docker compose down`.
 
-For example, if you copied the ZIP to the server:
+## Jam room: see where to go next
 
-```sh
-unzip pocket-guitar-docker.zip -d /opt
-```
+Choose a key, progression, tempo and accompaniment. Generate a variation or edit up to 16 chord slots. Folk, country, major, natural minor and dominant 12-bar blues are included. Blues uses one-bar slots; other styles allow one, two or four bars per chord.
 
-## First session
+Above the fretboard, tick **Show upcoming chord targets** and choose:
 
-1. Leave the key on **G** and style on **Folk**. The starting progression is **G–D–Em–C**.
-2. Choose **65 BPM**, **1 bar per chord**, and **Count in**.
-3. Press **Play backing**. Playback always begins at the first chord. Click a chord card while stopped to inspect it.
-4. Set Focus to **Roots only**, then play G, D, E and C as each chord arrives.
-5. Switch to **The third**: target **B, F♯, G and E** instead. Arrive on beat 1 and let the note ring.
-6. Add one or two connecting notes, keeping the landing note and the rhythm deliberate.
-7. Try **Practice path → Connect the nearest targets** to link the chords in one area of the neck.
+- **All chord tones:** see every tone of the next chord, including sevenths if enabled.
+- **Root only:** a simple arrival point.
+- **Third only:** aim for the note that gives the next chord its major/minor character.
 
-The app suggests resting notes; it does not listen to or score your guitar. Tap a fretboard note to hear its pitch. Standard tuning only, high e at the top. The left-handed option reverses the horizontal fret direction.
+The overlay updates with the current chord and includes the last-to-first loop transition. It always refers to the **next chord slot**, even when the current slot spans multiple bars or repeats the same chord. It is visible throughout the slot so you have time to plan. It also works while stopped: click a chord card to inspect it and the next chord.
 
-## What is included
+**N** marks a next-chord target. A note belonging only to the next chord uses the upcoming colour. A shared current/next chord tone keeps its current fill and gains an upcoming-colour ring. The current root and chord tones therefore remain visible. Target notes appear even if outside the selected scale overlay. In interval-label mode, shared-note labels describe the current chord; next-only labels have an arrow and describe the next chord. Hover/tap accessibility labels give both roles.
 
-- **Jam room:** all 12 keys; folk, country, major, natural minor and classic 12-bar blues. Generate variations or edit each chord slot, with up to 16 slots.
-- **Backing band:** synthesised chords and bass, optional simple percussion and metronome, straight/shuffle feel, strum/arpeggio/sustained patterns, 40–180 BPM, count-in, volume and looping. All backing is 4/4.
-- **Chord targets:** current/next chord, roots/thirds/fifths/sevenths, nearby-note connection suggestions, and a tappable fretboard with selectable fret windows.
-- **Scale overlays:** major/minor pentatonic, full major/natural minor, minor blues or chord tones only. Chord targets are added even when outside the selected scale.
-- **Practice path:** six focused lessons plus a 20-minute guided timer and practice journal.
-- **Ear trainer:** distinguish the root, major third and fifth of a major chord. No microphone required.
-- **Saved setups:** save the progression, key, tempo and display settings; restore or delete later.
+The overlay starts off by default and saves with your musical setup. You can change its checkbox/mode during playback without stopping the backing. The separate Connect the changes tab has been removed; the exercise now lives in the Jam room.
 
-For blues, the default is 12 one-bar slots with dominant seventh chords. Bars per chord is locked to one. You can still edit the chord order. Minor progressions use natural minor, so the v chord is minor; a harmonic-minor major V is not included in this version.
+Try G–C–D–G at 65 BPM, Upcoming → Third only. The next targets are E, F♯, B, B. Play a short phrase and arrive on the relevant third at the next chord’s beat 1. Shared tones can be held rather than moved.
 
-## Controls and behaviour
+## Fretboard colours and readability
 
-- **Space** starts/stops the backing when the Jam room is open and focus is not in a form control or button.
-- Changing musical settings stops playback so changes take effect cleanly at the next start. Display controls and volume can change during playback.
-- The active chord and fretboard update on scheduled audio beats, with a short audio scheduling buffer.
-- Playback stops when the tab is hidden, because browsers throttle background timers. Keep the tab visible while practising.
-- Audio starts after a click/tap. Check browser audio permissions, output device and system volume if silent.
-- The practice timer continues while you move between app tabs; pause it manually when needed. Reloading the page resets the timer.
+Open **Fretboard colours & readability**. Choose a high-contrast, warm/purple, light or original palette, or customise:
+
+- Board background and fret/string lines
+- Roots/targets, chord/phrase notes and scale notes
+- **Upcoming targets** (pink in the default high-contrast preset)
+
+Note labels choose black or white automatically for readable contrast. Standard/large note sizes are available. Root/target squares, scale-note dashed borders and the next-chord N badge provide cues beyond colour. Focus notes gain an outline instead of making all other notes disappear. Choosing similar custom colours can still make categories hard to distinguish; Reset restores the high-contrast defaults.
+
+Preferences save separately from musical setups. Older colour settings are preserved, with a default upcoming colour added.
+
+## Lick Lab: listen → copy → adapt
+
+Six original one-bar phrases now include actual pitch gestures, articulation and genre-specific feel:
+
+| Phrase | Main features |
+| --- | --- |
+| A rolling folk answer | Hammer-on, pull-off, space and a settled third |
+| Pedal-steel country answer | Bend one note against a held double-stop, pull-off and vibrato |
+| Chicken-pickin’ snap | Bright, clipped accents and chromatic hammer-on |
+| Minor blues bend & reply | Shuffle, whole-tone bend/release, pull-off and vibrato |
+| Blues bite, major landing | Shuffle, minor-to-major third hammer-on, slide and bend/release |
+| Sliding folk descent | Slide, pull-off and a spacious ending |
+
+Start at 55–65 BPM. Key selection transposes the tab, gesture endpoints and audio together. Shapes generally move up the neck; where a gesture would exceed fret 22, the phrase moves down an octave if possible. Explanations refer to the original key; the tab and target callout show the selected key.
+
+### Playback modes
+
+1. **Listen:** hear the phrase over its home chord after a four-beat count-in. Uncheck Loop practice to hear it once.
+2. **Listen, then copy:** a demo bar, then an answer bar over the same chord. The lead guide is silent during your turn, but timing highlights continue.
+3. **Adapt to the changes:** each chord gets a demo and copy bar. Only the final note changes to the current chord’s third. Bends and other gestures in the opening stay intact; they can create tension over the new chord, which you resolve with the final target.
+
+Blues phrases use long–short shuffle eighths; country and folk phrases use straight eighths. The count labels remain 1 & 2 & 3 & 4 &, with each shuffle & occurring later. Each tab column is a rhythmic subdivision; the column width is not a proportional time axis for shuffle.
+
+### Reading expressive tab
+
+- **3h5:** pick fret 3, then hammer onto fret 5 on the same string without picking again.
+- **8p5:** fret both positions, pick fret 8, then pull off to fret 5.
+- **5/8:** pick and slide from fret 5 to fret 8.
+- **10b12:** fret 10 and bend until it sounds like fret 12. Do not move your finger to fret 12.
+- **7b9r7:** bend fret 7 to the pitch of fret 9, then release to the original pitch.
+- **~:** vibrato.
+
+On the fretboard, numbered dots show phrase order. A dashed dot with **b** is the bend’s pitch destination, not a second finger position. An arrow identifies a slide/legato destination. A square marks the final target. Tap a dot to hear its reference pitch. The full demo plays the gestures; hammer-ons/pull-offs use one picked attack, slides/bends change pitch, and vibrato modulates the held note.
+
+The sound is still a synthesised guide, not a recorded guitar or exact simulation of guitar mechanics. The country voice is brighter and shorter; the blues voice has more sustain and harmonic weight. “Comfortable with this phrase” is self-assessment, not microphone scoring.
+
+## Other features and controls
+
+- Six focused solo lessons, a guided 20-minute timer and a practice journal.
+- Ear training: identify the root, third or fifth of a major chord.
+- Fret windows, chord/scale overlays, root/third focus and left-handed Jam room view.
+- The Jam room volume controls all playback. Only one backing player runs at a time.
+- Space starts/stops Jam room playback when focus is outside form controls and buttons.
+- Musical setting changes stop the backing; display options and volume can change live.
+- Playback stops when the browser tab is hidden to avoid background timer drift.
+- The practice timer continues between app sections; page reload resets it.
+- Audio begins only after a click/tap. Check browser/system volume if silent.
 
 ## Data and access
 
-Settings, up to 50 saved setups and the latest 100 practice notes use this browser's local storage. The most recent 20 notes are displayed. They are not stored in the Docker container or synced between devices. Use the same browser and address to keep your history; clearing site data removes it. Changing between an IP address and a domain creates a separate browser storage area.
+The browser stores settings, up to 50 setups and 100 practice notes (the latest 20 are displayed), appearance preferences and lick completion marks. Nothing is stored in a server database or synced across devices. Clearing site data removes it; changing address/domain uses a different storage area.
 
-The app has no accounts or server-side database. It is intended for a home network. If you expose it externally, put it behind your existing authenticated reverse proxy.
+The app has no authentication. It is designed for a home network; use an authenticated reverse proxy if exposing it externally.
 
-## Sound and scope
+## Development and checks
 
-The backing uses Web Audio synthesis, not recordings of real guitar or drums. It is a timing and harmony practice aid. Percussion is deliberately simple. There is no microphone analysis, tuner, recording, automatic transcription or custom audio upload.
-
-Useful future additions would be movable triad/inversion drills, call-and-response phrase playback, and recording short takes for comparison. Those are separate from the features delivered here.
-
-## Local development
-
-Serve the `public` directory over HTTP (opening `index.html` directly as a file will not load JavaScript modules reliably):
+No npm packages are needed to run the app. For local development:
 
 ```sh
 python3 -m http.server 8088 --directory public
 ```
 
-Music theory tests use Node's built-in test runner; no npm install is required:
+Do not open index.html as a file: JavaScript modules need an HTTP server. Automated tests use Node’s built-in runner:
 
 ```sh
 node --test tests/*.test.js
 ```
 
-Files: `public/theory.js` handles pitches and chords; `audio.js` schedules sound; `app.js` connects controls, storage and fretboard; `lessons.js` contains exercises; `style.css` handles layout.
-
-
-## Earlier release: 1.1.0
-
-Replace the app files with this download. For the Portainer bind-mount installation, overwrite `/opt/guitar-practice/public` and refresh the page. The stack configuration is unchanged. For the built image, run `docker compose up -d --build` from the extracted folder.
-
-This release removes the Chord flourishes tab and its exercise data, and replaces the routine's flourish stage with connecting chord tones. The strum sound now uses a richer pitched waveform, longer sustain, a clearer register and quieter percussion. Invalid accompaniment settings fall back to strumming. Late audio scheduling resumes at a future beat instead of playing a burst of old notes. Versioned app/audio links refresh the changed code; Ctrl+F5 is available if your browser still shows the old page.
-
-Saved setups and practice notes keep the same browser storage key and remain available when using the same browser and URL. The backing is still synthesised, not a recorded acoustic guitar.
-
-
-## New in 1.2.0 — Lick Lab, chord connections and readable fretboards
-
-### Lick Lab
-
-Six original one-bar phrases cover major-pentatonic melody, country double-stops, a chord-tone run, minor pentatonic, blues major/minor colour and a descending major-scale phrase.
-
-1. Choose a phrase. Its original key is loaded automatically.
-2. Set 40–140 BPM; start at 55–65 BPM.
-3. **Listen to the lick:** a four-beat count-in, then the phrase over its home chord. Uncheck Loop practice for a single pass.
-4. **Listen, then copy:** one demo bar followed by one bar for you over the same chord. The lead guide is silent during your turn.
-5. **Adapt to the changes:** each chord gets a demo and copy bar. The last note changes to the current chord's third. The earlier notes remain unchanged and can create tension; listen to the resolution.
-
-Tab, fretboard and audio transpose together in all 12 keys. Transposition moves the original shape up the neck, sometimes to a higher register. The explanatory paragraph describes the original key; the target callout and tab always show your selected key. Each tab column is half a beat, and two frets in the same column are played together. A horizontal line indicates a held note, not another attack. All phrases use straight eighths; blues phrasing here does not automatically use shuffle.
-
-The note order appears under the fretboard labels. Square markers identify the final target. Audio and tab highlighting continue through your copy bar to guide your timing. “Comfortable with this phrase” records your own assessment per phrase; there is no microphone scoring.
-
-### Connect the changes
-
-Set up a progression in the Jam room, then open Connect the changes. The progression is copied automatically each time you enter. Choose a chord change, source/arrival tones and fret window. The app finds a short move on one string.
-
-Play A on beat 4 of the first bar and B on beat 1 of the second. These are step labels, not note names. The target callout gives the actual note names, strings and frets. A shared note may remain at the same fret across the chord change. Uncheck “Play target-note guide” to practise with only the chord backing and optional click. Add your own approach notes when the connection feels easy.
-
-### Fretboard colours and readability
-
-Open **Fretboard colours & readability** above the tabs' content. Choose High contrast, Warm / purple, Light fretboard or Original greens. You can customise the board, roots/targets, chord/phrase notes, scale notes and string/fret lines, plus select standard or large markers.
-
-Note-label text automatically changes to black or white for readable contrast against the chosen note fill. Root/target markers are square; other notes are round, with dashed borders for scale notes. Focus notes use an extra outline instead of fading the other notes almost away. Custom colours can still make categories look alike; use a preset or Reset if you lose visual separation.
-
-Appearance preferences save separately from musical setups and apply across all three fretboards. Existing setups and practice notes keep their original storage key. Lick completion marks have their own browser storage entry. None of these are synced between devices.
-
-### Install this update
-
-For Portainer bind mounts, copy all files from the updated `public` folder into `/opt/guitar-practice/public`, replacing the existing files. There are new JavaScript modules, so copy the whole folder rather than only app.js. Then refresh the page; use Ctrl+F5 if needed. No stack changes are required.
-
-For the built Docker image, replace the source files and run `docker compose up -d --build`. The header should show version 1.2. The backing sound remains synthesised. Master volume is set in the Jam room and shared by the two trainers. Only one backing player runs at a time; changing practice sections stops trainer playback.
+See `VERIFICATION.md` for the tests performed and remaining limitations.

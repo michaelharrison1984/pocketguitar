@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {LICKS,transposeEvents,phraseFor,lickPlan,midi,connection} from '../public/licks.js';
+import {LICKS,transposeEvents,phraseFor,lickPlan,midi,beatTime,scoreBeat,tabNote} from '../public/licks.js';
 import {makeProgression,mod,PRESETS} from '../public/theory.js';
 import {ink,PALETTES} from '../public/appearance.js';
 test('all phrases preserve pitch intervals and timing in every key',()=>{
  for(const l of LICKS)for(let key=0;key<12;key++){
   const events=transposeEvents(l,key),shift=mod(key-l.baseKey);assert.ok(events.length>=4);
-  events.forEach((e,i)=>{assert.ok(e.beat>=0&&e.beat+e.duration<=4);assert.ok(e.beat*2===Math.floor(e.beat*2));assert.equal(e.beat,l.events[i].beat);e.notes.forEach((p,j)=>{assert.ok(p.fret>=0&&p.fret<=22);assert.equal(midi(p)-midi(l.events[i].notes[j]),shift);});});
+  events.forEach((e,i)=>{assert.ok(e.beat>=0&&e.beat+e.duration<=4);assert.ok(e.beat*2===Math.floor(e.beat*2));assert.equal(e.beat,l.events[i].beat);e.notes.forEach((p,j)=>{assert.ok(p.fret>=0&&p.fret<=22);assert.equal(mod(midi(p)-midi(l.events[i].notes[j])),shift);if(p.toFret!==undefined){assert.ok(p.toFret>=0&&p.toFret<=22);assert.equal(p.toFret-p.fret,l.events[i].notes[j].toFret-l.events[i].notes[j].fret);}});});
  }
 });
 test('every adapted phrase ends on the current chord third without changing its opening',()=>{
@@ -20,14 +20,13 @@ test('listen, copy and adapt plans give silent answer bars over the same chord',
 test('original endings are tonic thirds in every phrase',()=>{
  for(const l of LICKS){const chord=lickPlan(l,l.baseKey,'listen')[0].chord;assert.equal(mod(midi(l.events.at(-1).notes[0])),chord.tones[1]);}
 });
-test('same-string trainer gives valid chord tones across styles, keys and windows',()=>{
- for(const style of Object.keys(PRESETS))for(let key=0;key<12;key++){
-  const chords=makeProgression(key,style,PRESETS[style].patterns[0],false);
-  for(let i=0;i<chords.length;i++)for(const start of [0,3,5,7,12]){
-   const from=chords[i],to=chords[(i+1)%chords.length],p=connection(from,to,start,start+7);
-   assert.ok(p);assert.equal(p.from.string,p.to.string);assert.equal(mod(midi(p.from)),from.tones[1]);assert.equal(mod(midi(p.to)),to.root);for(const n of [p.from,p.to])assert.ok(n.fret>=start&&n.fret<=start+7);
-  }
- }
+test('shuffle timing keeps whole beats and delays the offbeat, with an exact inverse',()=>{
+ assert.equal(beatTime(.5,'shuffle'),2/3);assert.equal(beatTime(1,'shuffle'),1);
+ for(let n=0;n<=32;n++){const t=n/8;assert.ok(Math.abs(scoreBeat(beatTime(t,'shuffle'),'shuffle')-t)<1e-10);}
+});
+test('articulations appear in country and blues tabs and do not overlap the next event',()=>{
+ const kinds=new Set();for(const l of LICKS){for(const e of l.events){for(const p of e.notes){if(p.tech){kinds.add(p.tech);assert.notEqual(tabNote(p),String(p.fret));}}}for(let i=0;i<l.events.length-1;i++)assert.ok(l.events[i].beat+l.events[i].duration<=l.events[i+1].beat);}
+ assert.deepEqual([...kinds].sort(),['bend','hammer','pull','slide']);assert.ok(LICKS.filter(l=>l.genre==='Blues').every(l=>l.feel==='shuffle'));
 });
 function luminance(hex){const v=hex.match(/[a-f\d]{2}/gi).map(n=>parseInt(n,16)/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4);return v[0]*.2126+v[1]*.7152+v[2]*.0722;}
 test('automatic text colour maintains at least 4.5:1 contrast',()=>{

@@ -1,0 +1,8 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {Band} from '../public/audio.js';
+function param(){return {events:[],value:0,setValueAtTime(v,t){this.events.push(['set',v,t]);},linearRampToValueAtTime(v,t){this.events.push(['linear',v,t]);},exponentialRampToValueAtTime(v,t){this.events.push(['ramp',v,t]);}};}
+function setup(){const oscs=[];const band=new Band(()=>{},()=>{});band.ctx={currentTime:0,createOscillator(){const o={frequency:param(),detune:param(),setPeriodicWave(){},connect(){},disconnect(){},start(){},stop(){}};oscs.push(o);return o;},createGain(){return {gain:param(),connect(){},disconnect(){}};},createBiquadFilter(){return {frequency:param(),Q:{},connect(){},disconnect(){}};}};return {band,oscs};}
+test('bend rises to the target pitch then releases, without repicking',()=>{const {band,oscs}=setup();band.lead(69,1,1,{targetMidi:71,tech:'bend',release:true,tone:'twang'});assert.equal(oscs.length,1);const a=oscs[0].frequency.events;assert.equal(a[0][1],440);assert.ok(Math.abs(a[2][1]-493.883)<.01);assert.equal(a.at(-1)[1],440);assert.ok(a[2][2]>a[1][2]);});
+test('hammer/pull transitions are rapid; slides glide; all use one attack',()=>{for(const tech of ['hammer','pull','slide']){const {band,oscs}=setup();band.lead(69,0,1,{targetMidi:tech==='pull'?67:71,tech});assert.equal(oscs.length,1);const a=oscs[0].frequency.events;const travel=a.at(-1)[2]-a.at(-2)[2];assert.ok(tech==='slide'?travel>.3:travel<.03);}});
+test('vibrato uses a separate modulation oscillator with a delayed depth envelope',()=>{const {band,oscs}=setup();band.lead(69,0,1,{vibrato:true,tone:'blues'});assert.equal(oscs.length,2);assert.equal(oscs[1].frequency.value,5.5);assert.equal(band.voices.size,2);});

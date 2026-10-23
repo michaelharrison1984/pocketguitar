@@ -1,4 +1,4 @@
-# Pocket Guitar 1.4
+# Pocket Guitar 1.5
 
 A self-hosted guitar practice room for following chord changes and building musical phrases. Standard tuning, 4/4, no external audio downloads or paid APIs.
 
@@ -12,7 +12,7 @@ A self-hosted guitar practice room for following chord changes and building musi
 docker compose up -d --build
 ```
 
-The header should display version **1.4**. Settings, saved setups, colours and practice notes remain in the same browser when using the same address. Existing lick completion marks are preserved.
+The header should display version **1.5**. Settings, saved setups, colours and practice notes remain in the same browser when using the same address. Existing lick completion marks are preserved.
 
 ## First installation
 
@@ -28,16 +28,50 @@ For Portainer, extract the folder on the Docker host so `/opt/guitar-practice/pu
 
 The image needs to be pulled initially. The running app then serves local files, with no external fonts or audio services. To stop a Compose installation, run `docker compose down`.
 
-## New in 1.4
+## New in 1.5
 
-- **Scales:** major, natural minor, major/minor pentatonic and blues in all keys. Choose a fret window, follow a numbered one-octave route, play ascending/descending/both, loop with a metronome, or hide note names. Open the scale in the Jam room to use it musically.
-- **Chords:** major/minor, dominant/major/minor seventh and sus2/sus4. Diagrams show open or movable shapes, finger suggestions and muted strings. Hear the actual displayed voicing. Some common voicings omit the fifth, such as open C7.
-- **Practice progressions:** seven loops from two-chord changes to seventh chords and 12-bar blues. Adjust tempo and bars per chord; the diagram follows playback. The backing uses arranged voicings, while Hear this voicing plays the exact diagram.
-- **Practice Path:** Beginner, Improver or Intermediate. Each has a 20-minute route and buttons that load its exercises. Start the timer separately; its floating controls follow you between sections. Open exercise loads the current stage without automatically starting audio. Changing level resets the session; the selected level saves.
-- **Settings:** Forest, Midnight, Warm studio and Daylight themes. Fretboard colours remain independent and are preserved across theme changes.
-- **Band sound & layers:** open this panel in the Jam room. Try Acoustic practice, Studio band, Blues trio or Soft ambient. Toggle plucked strings, electric piano, soft pad, bass and percussion, with individual levels and room ambience. Mixer settings save with your setup; level changes work during Jam playback. Chord practice uses the same mix; Lick Lab keeps percussion off for clarity.
+### Your data stays on your device
 
-The new backing uses locally synthesised plucked strings, layered harmonics, stereo placement and a short room reverb. It is richer in texture, but is not a recording of real musicians. For a full sound, try Studio band; for clearer target-note practice, start with Acoustic practice. No sample packs or network audio are required.
+Saved setups, practice notes, learning progress and preferences are stored in the browser's local storage, never on the Docker volume. This was already the case in 1.4; Settings now states it explicitly. Docker serves only static app files. Each phone/computer and browser has separate data. Existing notes and setups remain when you use the same browser and address. Clearing site data removes them. Switching from HTTP to HTTPS creates a different browser storage origin, so existing HTTP saves will not automatically appear at the HTTPS address.
+
+### Scale boxes throughout the app
+
+- Minor pentatonic: five familiar two-note-per-string patterns, **Box 1–5**. A minor Box 1 is the standard pattern at frets 5–8.
+- Major scale and major pentatonic: five named **CAGED shapes** (E, D, C, A, G, ordered along the neck). A shape name describes the fingering family, not the key: G major can use an E shape.
+- Natural minor: the five corresponding minor boxes, with the extra scale notes included.
+- Blues: the minor boxes plus the flat fifth as a passing note.
+
+Choose a key and box; the fingering transposes automatically. Fret numbers remain as location references. The background outline marks the actual notes of the shape rather than filling an arbitrary six-fret rectangle. Numbering conventions can differ between books; this app uses the familiar minor-pentatonic order for minor/blues and CAGED names for major.
+
+Scales Trainer now plays the whole box across six strings, low to high, high to low or both. The first/last note need not be a root. Square markers identify the roots: practise resolving your own phrases to those. Hide note names to test recall, or show neighbouring notes for context. Use in Jam room carries over the same key, scale and box.
+
+Jam room uses the same shapes. Current/upcoming chord targets can extend beyond a box's outlined notes, helping you resolve as the progression changes. Practice Path loads named boxes. Lick Lab shows the closest reference box around the phrase; bends, passing notes and adapted endings can fall outside it. You can turn that background box off without changing the lick.
+
+Existing saved setups retain their musical settings; old fret-window selections open in the first box for their scale family until you choose a box and save again.
+
+### Chord diagrams in the Jam room
+
+Use **Jam room view** to choose:
+
+- **Chord tones / scale box:** the soloing map.
+- **Chord diagrams:** current and next chord fingerings, useful for practising changes.
+- **Chords + chord tones:** both views.
+
+Open in Jam room from Chords automatically selects the combined view. Diagrams prefer open shapes where available and follow the playing chord, including the last-to-first loop transition. Diagrams show standard low E → high e orientation even if the horizontal solo map is left-handed. Diminished and minor-7-flat-5 shapes cover the remaining diatonic chords. The backing uses arranged voicings; Hear this voicing in Chords plays the exact displayed fingering.
+
+### Prevent mobile screen timeout
+
+**Settings → Keep screen awake during playback and timed practice** starts enabled. The app requests a screen wake lock during Jam, scale, chord or lick playback and while the practice timer runs. It releases the lock when those activities stop/pause, or the option is disabled. A status line shows whether the lock is active; Retry is available after a device release or denial.
+
+On a phone, this requires the app to be served over **HTTPS** and a browser supporting screen wake lock. A plain `http://SERVER-IP:8088` connection will not qualify. Use your HTTPS reverse proxy address; Docker can continue serving port 8088 behind it. There are no required stack changes for an existing HTTPS proxy.
+
+If the browser/device refuses the request (for example with power-saving settings), the app reports it rather than claiming the screen is protected. Increase your phone's screen timeout for the session if wake lock is unavailable. This prevents automatic timeout while the app is visible; it does not enable playback with the phone manually locked or another app in front. Timed sessions reacquire the lock when returning to the app, while audio still requires Play after leaving it.
+
+## Learning tools and backing sound
+
+Scales Trainer, Chord Library, seven practice progressions and Beginner/Improver/Intermediate 20-minute paths remain available. The Practice Path dock follows navigation; exercises load without automatically starting audio. Theme choices are Forest, Midnight, Warm studio and Daylight, independent of fretboard colours.
+
+In Jam room, **Band sound & layers** provides Acoustic practice, Studio band, Blues trio and Soft ambient presets. Toggle plucked strings, electric piano, soft pad, bass and percussion, with individual levels and room ambience. Chord practice uses the same mix; Lick Lab keeps percussion off. Instruments are synthesised locally, not recorded musicians; no sample downloads or audio service are required.
 
 ## Jam room: see where to go next
 
@@ -109,7 +143,7 @@ The sound is still a synthesised guide, not a recorded guitar or exact simulatio
 
 - Six focused solo lessons, a guided 20-minute timer and a practice journal.
 - Ear Trainer has been removed.
-- Fret windows, chord/scale overlays, root/third focus and left-handed Jam room view.
+- Named scale boxes, chord/scale overlays, root/third focus and left-handed horizontal Jam room view.
 - The Jam room volume controls all playback. Only one backing player runs at a time.
 - Space starts/stops Jam room playback when focus is outside form controls and buttons.
 - Musical setting changes stop the backing; display options and volume can change live.

@@ -1,4 +1,5 @@
-import {SoundRack,normalMix} from './sound.js?v=1.4.0';
+import {practiceActivity} from './wake.js?v=1.5.0';
+import {SoundRack,normalMix} from './sound.js?v=1.5.0';
 const PATTERNS = new Set(['strum', 'arp', 'pad']);
 export class Band {
  constructor(onBeat,onStop){this.onBeat=onBeat;this.onStop=onStop;this.ctx=null;this.running=false;this.events=[];this.voices=new Set();}
@@ -103,7 +104,7 @@ export class Band {
   this.config={...config,...normalMix(config),pattern:PATTERNS.has(config.pattern)?config.pattern:'strum',bpm:Math.max(40,Math.min(180,Number(config.bpm)||80)),bars:[1,2,4].includes(Number(config.bars))?Number(config.bars):1};
   this.rack?.update(this.config);
   this.running=true;this.index=config.count?-4:0;this.next=this.ctx.currentTime+.1;this.events=[];this.endTime=null;
-  this.tick();this.timer=setInterval(()=>this.tick(),25);this.paint();
+  practiceActivity(this,true);this.tick();this.timer=setInterval(()=>this.tick(),25);this.paint();
  }
  tick(){
   if(!this.running)return;
@@ -138,5 +139,5 @@ export class Band {
   }
  }
  paint(){if(!this.running)return;const time=this.ctx.currentTime;let e;while(this.events.length&&this.events[0].time<=time)e=this.events.shift();if(e)this.onBeat(e);if(this.endTime!==null&&this.endTime!==undefined&&time>=this.endTime){this.stop();return;}this.raf=requestAnimationFrame(()=>this.paint());}
- stop(notify=true){this.rack?.silenceRoom();this.running=false;clearInterval(this.timer);cancelAnimationFrame(this.raf);this.events=[];for(const v of this.voices){try{v.stop();}catch{}}this.voices.clear();if(notify)this.onStop();}
+ stop(notify=true){practiceActivity(this,false);this.rack?.silenceRoom();this.running=false;clearInterval(this.timer);cancelAnimationFrame(this.raf);this.events=[];for(const v of this.voices){try{v.stop();}catch{}}this.voices.clear();if(notify)this.onStop();}
 }

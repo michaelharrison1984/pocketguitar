@@ -1,22 +1,23 @@
-# Verification — 1.4.0
+# Verification — 1.5.0
 
 Completed:
-- 29 Node tests passed: existing theory, accompaniment scheduling, expressive lick gestures, adaptation, upcoming targets and contrast tests; new scale-route, chord-shape, practice-path and mixer tests.
-- Scale routes cover all five scales in all 12 keys and all six fret windows. Each contains the correct ascending octave; descending and round-trip sequences derive from that route.
-- All 168 chord-shape choices checked for valid chord tones, root and defining intervals. Common voicings may omit the fifth.
-- Headless Chromium: all six sections open without JavaScript errors; Ear Trainer is absent; scales, chord previews/progressions, Lick Lab and Jam playback start/stop; exercise buttons load appropriate settings; the practice dock follows navigation; live layer changes do not stop Jam playback; theme and mixer choices survive reload.
-- Mobile viewport (390px): no page-level horizontal overflow in any section. Fretboards and tab scroll inside their panels. Desktop chord library and mobile scales screenshots visually inspected.
-- Real Chromium OfflineAudioContext rendered all five new instruments with nonzero output and no clipping in the individual test renders. These checks establish audio generation, not perceived realism.
+- 40 Node tests passed. Added five box/diagram tests and six wake-lock lifecycle tests alongside the existing theory, playback, lick-articulation, appearance and progression checks.
+- All five shapes for all five scale families in every key checked for six-string coverage, valid pitches, all scale degrees, root markers and playable fret bounds. All five A-minor pentatonic shapes checked against explicit standard fingerboard patterns; every pentatonic shape has two notes per string.
+- Every diatonic triad/seventh chord in major and natural minor, in every key, has a matching diagram including diminished and half-diminished chords.
+- Headless Chromium integration: old local notes/setups preserved; new notes survive reload; a separate browser context has no copies of them; no non-GET requests were sent while saving. Scales → Jam carries key and box; Practice Path loads named shapes; Lick Lab box overlays toggle correctly for all six phrases.
+- Jam diagrams update on manual selection and during playback; diagrams-only and combined views work; upcoming-third overlays remain functional. Scale one-shot playback completes.
+- Mobile (390px) checks across all six sections: no page-level horizontal overflow. Scale shape and Jam diagrams screenshots inspected. Mobile diagrams stack vertically so finger numbers remain readable.
+- Wake lock: enabled setting persists; the headless browser reported native wake-lock rejection without breaking audio. A simulated supported wake-lock API verified successful acquisition through the real playback/timer UI, retry and pause/release. Unit tests cover stop, disable, hidden/visible transitions, device release, denied/unsupported/insecure contexts and delayed requests completing after stop.
 
 Limits:
-- Docker is unavailable in this environment. The unchanged Nginx/Docker configuration was not executed; browser testing served the same static files over local HTTP.
-- Playback is synthesised, not recorded instruments. Test the sound and comfortable volume on your own speakers/headphones.
-- No microphone input or automatic assessment. The timer resets on reload; other choices and practice notes save locally in the same browser/address.
+- A physical phone's screen timeout and OS battery restrictions cannot be tested here. Test on your mobile HTTPS address and look for “Screen awake: active”. HTTP server-IP addresses do not qualify on a phone.
+- Deliberately locking the device or leaving the browser still stops playback. This release prevents automatic timeout when the browser grants a screen lock; it does not implement background audio.
+- Docker is unavailable in this environment. The unchanged container configuration was not run; browser testing served the same static files over HTTP on localhost (a secure-context exception for testing).
+- No microphone input, automatic assessment or cross-device sync. Saves remain local to the device/browser and website origin. HTTPS and HTTP addresses have different browser storage.
 
 Quick checks after updating:
-1. Confirm 1.4 in the header, and the Scales, Chords and Settings tabs.
-2. In Scales, try G major in Open–5, then Hide note names and Play scale.
-3. In Chords, try E–A changes at 55 BPM, then a seventh-chord progression.
-4. Select your skill level in Practice Path, start the timer and open an exercise.
-5. In Settings try Daylight; existing fretboard colours should remain unchanged.
-6. In Jam room open Band sound & layers and select Studio band. Adjust each layer while playing. Existing upcoming-note targets and expressive licks remain available.
+1. Confirm version 1.5. Existing saved setups and notes should still appear at the same address.
+2. Scales: A minor pentatonic → Box 1. Verify the familiar 5–8 pattern, play it, and open it in Jam room.
+3. Chords: open a progression in Jam room. Both current/next diagrams and the chord-tone map should appear; choose diagrams only if preferred.
+4. Play a backing track on your mobile HTTPS address. Verify “Screen awake: active” and leave it beyond your usual timeout. Stop playback and check that the status returns to ready (unless the practice timer is still running).
+5. If screen awake is unavailable, follow the displayed HTTPS/browser/timeout advice. If moving to a new address, keep the previous address available for its existing local saves.

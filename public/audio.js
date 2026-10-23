@@ -1,3 +1,4 @@
+import {SoundRack,normalMix} from './sound.js?v=1.4.0';
 const PATTERNS = new Set(['strum', 'arp', 'pad']);
 export class Band {
  constructor(onBeat,onStop){this.onBeat=onBeat;this.onStop=onStop;this.ctx=null;this.running=false;this.events=[];this.voices=new Set();}
@@ -10,10 +11,16 @@ export class Band {
    // Fundamental plus gentle upper harmonics: audible pitch even on small speakers.
    this.strings=this.ctx.createPeriodicWave(new Float32Array(7),new Float32Array([0,1,.42,.22,.12,.065,.035]));
    this.twangStrings=this.ctx.createPeriodicWave(new Float32Array(9),new Float32Array([0,1,.65,.38,.28,.18,.12,.08,.04]));
+   this.rack=new SoundRack(this.ctx,this.master,this.voices);
    this.bluesStrings=this.ctx.createPeriodicWave(new Float32Array(7),new Float32Array([0,1,.18,.4,.08,.17,.03]));
   }
   await this.ctx.resume();
  }
+ updateMix(config){if(this.config)this.config={...this.config,...normalMix(config)};this.rack?.update(config);}
+ guitarNote(...args){if(this.rack)this.rack.guitar(...args);else this.pluck(...args);}
+ pianoNote(...args){if(this.rack)this.rack.piano(...args);else this.pluck(...args);}
+ padNote(...args){if(this.rack)this.rack.pad(...args);else this.pluck(...args);}
+ bassNote(m,t,d){if(this.rack)this.rack.bass(m,t,d);else this.tone(m,t,d,.1,'triangle');}
  volume(v){if(this.master)this.master.gain.setTargetAtTime(Math.max(0,Math.min(1,v)),this.ctx.currentTime,.04);}
  tone(midi,time,duration=.5,level=.13,type='triangle'){
   const o=this.ctx.createOscillator(),g=this.ctx.createGain();
@@ -80,6 +87,7 @@ export class Band {
  }
  track(o,g){this.voices.add(o);o.onended=()=>{this.voices.delete(o);o.disconnect();g.disconnect();};}
  hit(time,kind){
+  if(this.rack){this.rack.drum(time,kind);return;}
   if(kind==='kick'){this.tone(36,time,.12,.065,'sine');return;}
   this.tone(kind==='snare'?78:105,time,kind==='snare'?.045:.025,kind==='snare'?.014:.008,'triangle');
  }
@@ -92,7 +100,8 @@ export class Band {
  async preview(midi){await this.init();this.pluck(midi,this.ctx.currentTime+.02,.85,.16);}
  async start(config){
   await this.init();this.stop(false);
-  this.config={...config,pattern:PATTERNS.has(config.pattern)?config.pattern:'strum',bpm:Math.max(40,Math.min(180,Number(config.bpm)||80)),bars:[1,2,4].includes(Number(config.bars))?Number(config.bars):1};
+  this.config={...config,...normalMix(config),pattern:PATTERNS.has(config.pattern)?config.pattern:'strum',bpm:Math.max(40,Math.min(180,Number(config.bpm)||80)),bars:[1,2,4].includes(Number(config.bars))?Number(config.bars):1};
+  this.rack?.update(this.config);
   this.running=true;this.index=config.count?-4:0;this.next=this.ctx.currentTime+.1;this.events=[];this.endTime=null;
   this.tick();this.timer=setInterval(()=>this.tick(),25);this.paint();
  }
@@ -104,28 +113,30 @@ export class Band {
   while(this.next<now+.12){
    if(c.loop===false&&this.index>=total){this.endTime=this.next;break;}
    const step=this.index,beat=((step%4)+4)%4,ci=step<0?-1:Math.floor((step%total)/(c.bars*4));
-   this.events.push({time:this.next,ci,beat,bar:step<0?0:Math.floor((step%(c.bars*4))/4)+1});
+   this.events.push({time:this.next,ci,beat,step,bar:step<0?0:Math.floor((step%(c.bars*4))/4)+1});
    if(step<0){this.tone(beat===0?92:86,this.next,.04,.055,'sine');}
    else {
     const chord=c.chords[ci],v=this.voicing(chord),t=this.next;
     if(c.onSchedule)c.onSchedule({ci,beat,time:t,spb,step});
     if(c.click)this.tone(beat===0?92:86,t,.035,.035,'sine');
-    if(beat===0||beat===2)this.tone(36+Number(beat===2?chord.tones[2]:chord.root),t,spb*.95,.1,'triangle');
-    if(c.pattern==='pad'&&beat===0)v.forEach(n=>this.pluck(n,t,spb*3.95,.07,true));
-    if(c.pattern==='strum'){
-     v.forEach((n,i)=>this.pluck(n,t+i*.014,Math.max(.45,spb*1.3),beat===0?.09:.07));
-     if(beat===1||beat===3){const off=c.feel==='shuffle'?2/3:.5;[...v].reverse().forEach((n,i)=>this.pluck(n,t+spb*off+i*.009,Math.max(.3,spb*.6),.038));}
+    if(c.backing!==false){
+     if(c.bass&&(beat===0||beat===2))this.bassNote(36+Number(beat===2?chord.tones[2]:chord.root),t,spb*.95);
+     if(c.guitar){
+      if(c.pattern==='pad'&&beat===0)v.forEach(n=>this.guitarNote(n,t,spb*3.95,.08));
+      if(c.pattern==='strum'){
+       v.forEach((n,i)=>this.guitarNote(n,t+i*.014,Math.max(.45,spb*1.3),beat===0?.09:.07));
+       if(beat===1||beat===3){const off=c.feel==='shuffle'?2/3:.5;[...v].reverse().forEach((n,i)=>this.guitarNote(n,t+spb*off+i*.009,Math.max(.3,spb*.6),.038));}
+      }
+      if(c.pattern==='arp'){const off=c.feel==='shuffle'?2/3:.5;this.guitarNote(v[(beat*2)%v.length],t,Math.max(.4,spb*1.2),.13);this.guitarNote(v[(beat*2+1)%v.length],t+spb*off,Math.max(.35,spb*.9),.11);}
+     }
+     if(c.piano&&(beat===0||beat===2))v.forEach((n,i)=>this.pianoNote(n,t+i*.006,spb*1.85,beat===0?.12:.085));
+     if(c.pad&&beat===0)v.forEach(n=>this.padNote(n,t,spb*3.95,.08));
+     if(c.drums){this.hit(t,beat===0||beat===2?'kick':'snare');this.hit(t,'hat');this.hit(t+spb*(c.feel==='shuffle'?2/3:.5),'hat');}
     }
-    if(c.pattern==='arp'){
-     const off=c.feel==='shuffle'?2/3:.5;
-     this.pluck(v[(beat*2)%v.length],t,Math.max(.4,spb*1.2),.13);
-     this.pluck(v[(beat*2+1)%v.length],t+spb*off,Math.max(.35,spb*.9),.11);
-    }
-    if(c.drums){this.hit(t,beat===0||beat===2?'kick':'snare');this.hit(t,'hat');this.hit(t+spb*(c.feel==='shuffle'?2/3:.5),'hat');}
    }
    this.index++;this.next+=spb;
   }
  }
  paint(){if(!this.running)return;const time=this.ctx.currentTime;let e;while(this.events.length&&this.events[0].time<=time)e=this.events.shift();if(e)this.onBeat(e);if(this.endTime!==null&&this.endTime!==undefined&&time>=this.endTime){this.stop();return;}this.raf=requestAnimationFrame(()=>this.paint());}
- stop(notify=true){this.running=false;clearInterval(this.timer);cancelAnimationFrame(this.raf);this.events=[];for(const v of this.voices){try{v.stop();}catch{}}this.voices.clear();if(notify)this.onStop();}
+ stop(notify=true){this.rack?.silenceRoom();this.running=false;clearInterval(this.timer);cancelAnimationFrame(this.raf);this.events=[];for(const v of this.voices){try{v.stop();}catch{}}this.voices.clear();if(notify)this.onStop();}
 }

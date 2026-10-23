@@ -1,10 +1,10 @@
-# Pocket Guitar 1.3
+# Pocket Guitar 1.4
 
 A self-hosted guitar practice room for following chord changes and building musical phrases. Standard tuning, 4/4, no external audio downloads or paid APIs.
 
 ## Update an existing installation
 
-**Portainer with bind mounts:** copy the entire new `public` folder into `/opt/guitar-practice/public`, replacing existing files. Refresh the browser (Ctrl+F5 if necessary). No stack changes are required. Copy the whole folder: this release adds a JavaScript module.
+**Portainer with bind mounts:** copy the entire new `public` folder into `/opt/guitar-practice/public`, replacing existing files. Refresh the browser (Ctrl+F5 if necessary). No stack changes are required. Copy the whole folder: this release adds several JavaScript modules.
 
 **Built Docker image:** replace the source files, then run from the extracted folder:
 
@@ -12,7 +12,7 @@ A self-hosted guitar practice room for following chord changes and building musi
 docker compose up -d --build
 ```
 
-The header should display version **1.3**. Settings, saved setups, colours and practice notes remain in the same browser when using the same address. Revised licks have new completion IDs because the exercises changed; their “Comfortable” marks start unchecked. Previous completion entries do not erase your other data.
+The header should display version **1.4**. Settings, saved setups, colours and practice notes remain in the same browser when using the same address. Existing lick completion marks are preserved.
 
 ## First installation
 
@@ -27,6 +27,17 @@ Open `http://YOUR-SERVER-IP:8088` (or `http://localhost:8088` on the same machin
 For Portainer, extract the folder on the Docker host so `/opt/guitar-practice/public/index.html` and `/opt/guitar-practice/nginx.conf` exist. Add a Stack using the Web editor and paste `portainer-stack.yaml`. Change both host paths if you use a different folder. Use Docker Standalone; with Swarm, bind-mounted files must exist on each relevant node.
 
 The image needs to be pulled initially. The running app then serves local files, with no external fonts or audio services. To stop a Compose installation, run `docker compose down`.
+
+## New in 1.4
+
+- **Scales:** major, natural minor, major/minor pentatonic and blues in all keys. Choose a fret window, follow a numbered one-octave route, play ascending/descending/both, loop with a metronome, or hide note names. Open the scale in the Jam room to use it musically.
+- **Chords:** major/minor, dominant/major/minor seventh and sus2/sus4. Diagrams show open or movable shapes, finger suggestions and muted strings. Hear the actual displayed voicing. Some common voicings omit the fifth, such as open C7.
+- **Practice progressions:** seven loops from two-chord changes to seventh chords and 12-bar blues. Adjust tempo and bars per chord; the diagram follows playback. The backing uses arranged voicings, while Hear this voicing plays the exact diagram.
+- **Practice Path:** Beginner, Improver or Intermediate. Each has a 20-minute route and buttons that load its exercises. Start the timer separately; its floating controls follow you between sections. Open exercise loads the current stage without automatically starting audio. Changing level resets the session; the selected level saves.
+- **Settings:** Forest, Midnight, Warm studio and Daylight themes. Fretboard colours remain independent and are preserved across theme changes.
+- **Band sound & layers:** open this panel in the Jam room. Try Acoustic practice, Studio band, Blues trio or Soft ambient. Toggle plucked strings, electric piano, soft pad, bass and percussion, with individual levels and room ambience. Mixer settings save with your setup; level changes work during Jam playback. Chord practice uses the same mix; Lick Lab keeps percussion off for clarity.
+
+The new backing uses locally synthesised plucked strings, layered harmonics, stereo placement and a short room reverb. It is richer in texture, but is not a recording of real musicians. For a full sound, try Studio band; for clearer target-note practice, start with Acoustic practice. No sample packs or network audio are required.
 
 ## Jam room: see where to go next
 
@@ -48,7 +59,7 @@ Try G–C–D–G at 65 BPM, Upcoming → Third only. The next targets are E, F�
 
 ## Fretboard colours and readability
 
-Open **Fretboard colours & readability**. Choose a high-contrast, warm/purple, light or original palette, or customise:
+Open **Settings → Fretboard colours & readability**. Choose a high-contrast, warm/purple, light or original palette, or customise:
 
 - Board background and fret/string lines
 - Roots/targets, chord/phrase notes and scale notes
@@ -97,7 +108,7 @@ The sound is still a synthesised guide, not a recorded guitar or exact simulatio
 ## Other features and controls
 
 - Six focused solo lessons, a guided 20-minute timer and a practice journal.
-- Ear training: identify the root, third or fifth of a major chord.
+- Ear Trainer has been removed.
 - Fret windows, chord/scale overlays, root/third focus and left-handed Jam room view.
 - The Jam room volume controls all playback. Only one backing player runs at a time.
 - Space starts/stops Jam room playback when focus is outside form controls and buttons.

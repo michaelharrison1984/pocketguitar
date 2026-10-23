@@ -1,17 +1,21 @@
-import {upcomingTones} from './upcoming.js?v=1.3.0';
-import {initAppearance} from './appearance.js?v=1.3.0';
-import {initLab} from './lab.js?v=1.3.0';
+import {initFoundations} from './foundations.js?v=1.4.0';
+import {initPractice} from './practice.js?v=1.4.0';
+import {MIX_DEFAULTS,MIX_PRESETS,normalMix} from './sound.js?v=1.4.0';
+import {upcomingTones} from './upcoming.js?v=1.4.0';
+import {initAppearance} from './appearance.js?v=1.4.0';
+import {initLab} from './lab.js?v=1.4.0';
 import {KEYS,PRESETS,mod,note,named,makeProgression,palette,nearestTarget,intervalName} from './theory.js';
-import {Band} from './audio.js?v=1.3.0';
-import {lessons} from './lessons.js?v=1.3.0';
+import {Band} from './audio.js?v=1.4.0';
+import {lessons} from './lessons.js?v=1.4.0';
 const $=id=>document.getElementById(id);
 let memory={};try{memory=JSON.parse(localStorage.getItem('pocket-guitar-v1')||'{}')||{};}catch{}
-const defaults={key:7,style:'folk',bpm:80,bars:1,feel:'straight',pattern:'strum',sevenths:false,drums:true,click:false,count:true,volume:65,focus:'all',scale:'pent',position:'5',labels:'notes',lefty:false,showUpcoming:false,upcomingMode:'all',degrees:[0,4,5,3]};
+const defaults={...MIX_DEFAULTS,mixPreset:'custom',key:7,style:'folk',bpm:80,bars:1,feel:'straight',pattern:'strum',sevenths:false,drums:true,click:false,count:true,volume:65,focus:'all',scale:'pent',position:'5',labels:'notes',lefty:false,showUpcoming:false,upcomingMode:'all',degrees:[0,4,5,3]};
 let state={...defaults,...memory.settings},active=0,saves=Array.isArray(memory.saves)?memory.saves:[],journal=Array.isArray(memory.journal)?memory.journal:[];
 if(!PRESETS[state.style])state.style='folk';
 if(!Number.isInteger(+state.key)||state.key<0||state.key>11)state.key=7;
 if(!Array.isArray(state.degrees)||!state.degrees.length||state.degrees.some(d=>!Number.isInteger(d)||d<0||d>(state.style==='blues'?2:6)))state.degrees=[...PRESETS[state.style].patterns[0]];
-let lab=null;
+let lab=null,foundations=null;
+state={...state,...normalMix(state)};
 let chords=[],lastPreset=0,toastTimer,starting=false;
 function toast(t){$('toast').textContent=t;$('toast').style.display='block';clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').style.display='none',3200);}
 function persist(){try{localStorage.setItem('pocket-guitar-v1',JSON.stringify({settings:state,saves,journal}));}catch{toast('Browser storage is unavailable or full. Changes remain for this visit.');}}
@@ -19,10 +23,10 @@ function label(pc){return named(pc,+state.key,PRESETS[state.style].mode);}
 const band=new Band(e=>{if(e.ci<0){$('playStatus').textContent=`Count in · ${e.beat+1}`;}else{if(active!==e.ci){active=e.ci;renderTargets();highlight();}$('playStatus').textContent=`${chords[active].name} · bar ${e.bar}/${state.bars} · beat ${e.beat+1}`;}[...$('beats').children].forEach((x,i)=>x.classList.toggle('on',i===e.beat));},()=>{$('play').textContent='▶ Play backing';$('playStatus').textContent='Stopped';[...$('beats').children].forEach(x=>x.classList.remove('on'));});
 function stop(){band.stop();}
 function config(){return {...state,chords,bpm:+state.bpm,bars:+state.bars};}
-async function play(){lab?.stop();if(starting)return;if(band.running){stop();return;}starting=true;try{await band.start(config());band.volume(state.volume/100);$('play').textContent='■ Stop backing';}catch{toast('Audio could not start. Try a browser with Web Audio support.');}finally{starting=false;}}
+async function play(){lab?.stop();foundations?.stop();if(starting)return;if(band.running){stop();return;}starting=true;try{await band.start(config());band.volume(state.volume/100);$('play').textContent='■ Stop backing';}catch{toast('Audio could not start. Try a browser with Web Audio support.');}finally{starting=false;}}
 $('key').innerHTML=KEYS.map((k,i)=>`<option value="${i}">${k}</option>`).join('');
 $('style').innerHTML=Object.entries(PRESETS).map(([v,p])=>`<option value="${v}">${p.label}</option>`).join('');
-function sync(){if(!['strum','arp','pad'].includes(state.pattern))state.pattern='strum';Object.keys(defaults).forEach(id=>{const el=$(id);if(!el||['lefty'].includes(id))return;if(el.type==='checkbox')el.checked=state[id];else el.value=state[id];});$('bpmText').textContent=`${state.bpm} BPM`;$('lefty').setAttribute('aria-pressed',state.lefty);$('sevenths').disabled=state.style==='blues';$('bars').disabled=state.style==='blues';}
+function sync(){if(!['strum','arp','pad'].includes(state.pattern))state.pattern='strum';Object.keys(defaults).forEach(id=>{const el=$(id);if(!el||['lefty'].includes(id))return;if(el.type==='checkbox')el.checked=state[id];else el.value=state[id];});for(const id of ['guitarLevel','pianoLevel','padLevel','bassLevel','drumsLevel','room'])$(id+'Text').textContent=state[id]+'%';$('bpmText').textContent=`${state.bpm} BPM`;$('lefty').setAttribute('aria-pressed',state.lefty);$('sevenths').disabled=state.style==='blues';$('bars').disabled=state.style==='blues';}
 function rebuild(){chords=makeProgression(+state.key,state.style,state.degrees,state.sevenths);active=Math.min(active,chords.length-1);$('progressionTitle').textContent=`${KEYS[state.key]} ${state.style==='blues'?'blues':PRESETS[state.style].mode}`;
  $('progression').innerHTML=chords.map((c,i)=>`<button class="chord-card ${i===active?'active':''}" data-chord="${i}" aria-label="Select chord ${i+1}: ${c.name}"><span>${c.roman} · ${i+1}</span><strong>${c.name}</strong></button>`).join('');
  $('progression').querySelectorAll('button').forEach(b=>b.onclick=()=>{stop();active=+b.dataset.chord;highlight();renderTargets();});renderEditor();renderTargets();persist();}
@@ -47,7 +51,16 @@ function renderBoard(){
  $('fretboard').querySelectorAll('button').forEach(b=>b.onclick=async()=>{try{await band.init();band.volume(state.volume/100);await band.preview(+b.dataset.midi);}catch{toast('Audio is unavailable.');}});
  $('scaleHint').textContent=state.scale==='blues'?'Minor blues notes add tension against major chords. Resolve to the highlighted chord tones; not every blue note is a resting point.':state.style==='blues'?'The blues chords contain notes outside the key’s major scale. The bright chord targets take priority as each chord changes.':'Chord tones are the strongest landing notes. The other dots help you travel between them. All positions use standard tuning.';
 }
-Object.keys(defaults).filter(id=>$(id)&&!['lefty'].includes(id)).forEach(id=>{$(id).addEventListener(id==='volume'?'input':'change',()=>{if(id!=='volume'&&!['focus','scale','position','labels','showUpcoming','upcomingMode'].includes(id))stop();state[id]=$(id).type==='checkbox'?$(id).checked:$(id).value;if(id==='style'){state.degrees=[...PRESETS[state.style].patterns[0]];state.scale=state.style==='blues'?'blues':'pent';state.feel=state.style==='blues'?'shuffle':'straight';if(state.style==='blues')state.bars=1;active=0;}if(id==='volume')band.volume(state.volume/100);sync();rebuild();});});
+const mixKeys=Object.keys(MIX_DEFAULTS);
+Object.keys(defaults).filter(id=>$(id)&&id!=='lefty').forEach(id=>{$(id).addEventListener($(id).type==='range'&&id!=='bpm'?'input':'change',()=>{
+ const isMix=mixKeys.includes(id)||id==='mixPreset';
+ if(!isMix&&id!=='volume'&&!['focus','scale','position','labels','showUpcoming','upcomingMode'].includes(id))stop();
+ state[id]=$(id).type==='checkbox'?$(id).checked:$(id).value;
+ if(id==='mixPreset'&&MIX_PRESETS[state.mixPreset])Object.assign(state,MIX_PRESETS[state.mixPreset]);else if(isMix)state.mixPreset='custom';
+ if(id==='style'){state.degrees=[...PRESETS[state.style].patterns[0]];state.scale=state.style==='blues'?'blues':'pent';state.feel=state.style==='blues'?'shuffle':'straight';if(state.style==='blues')state.bars=1;active=0;}
+ if(id==='volume')band.volume(state.volume/100);
+ if(isMix)band.updateMix(state);sync();if(isMix||id==='volume')persist();else rebuild();
+ });});
 $('bpm').oninput=()=>{$('bpmText').textContent=`${$('bpm').value} BPM`;};
 $('generate').onclick=()=>{stop();const patterns=PRESETS[state.style].patterns;lastPreset=(lastPreset+1+Math.floor(Math.random()*Math.max(1,patterns.length-1)))%patterns.length;state.degrees=[...patterns[lastPreset]];active=0;rebuild();toast(state.style==='blues'?'Classic 12-bar blues loaded':'New progression ready');};
 $('play').onclick=play;$('lefty').onclick=()=>{state.lefty=!state.lefty;sync();renderBoard();persist();};
@@ -55,24 +68,17 @@ $('addChord').onclick=()=>{if(state.degrees.length>=16){toast('Maximum 16 chord 
 function renderSaves(){const selection=$('saved').value;$('saved').replaceChildren(new Option('Choose a saved setup…',''));saves.forEach((s,i)=>$('saved').add(new Option(s.name,String(i))));$('saved').value=selection;}
 $('save').onclick=()=>{const name=prompt('Name this setup',`${KEYS[state.key]} · ${chords.map(c=>c.name).join(' – ')} · ${state.bpm} BPM`);if(!name?.trim())return;if(saves.length>=50){toast('50 setups saved. Delete one before adding more.');return;}saves.push({name:name.trim().slice(0,100),state:structuredClone(state)});persist();renderSaves();toast('Setup saved');};
 $('saved').onchange=()=>{if($('saved').value==='')return;stop();state={...defaults,...structuredClone(saves[+$('saved').value].state)};active=0;sync();rebuild();};$('deleteSaved').onclick=()=>{if($('saved').value==='')return;saves.splice(+$('saved').value,1);$('saved').value='';persist();renderSaves();toast('Saved setup deleted');};
-function tab(id){lab?.enter(id);if(['licklab','ear'].includes(id))stop();document.querySelectorAll('.tab-panel').forEach(p=>p.hidden=p.id!==id);document.querySelectorAll('.tab').forEach(b=>{b.classList.toggle('active',b.dataset.tab===id);b.setAttribute('aria-current',b.dataset.tab===id?'page':'false');});if(id==='ear')stop();}
+function tab(id){stop();lab?.stop();foundations?.stop();document.querySelectorAll('.tab-panel').forEach(p=>p.hidden=p.id!==id);document.querySelectorAll('.tab').forEach(b=>{b.classList.toggle('active',b.dataset.tab===id);b.setAttribute('aria-current',b.dataset.tab===id?'page':'false');});}
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>tab(b.dataset.tab));
 function loadPractice(settings){stop();state={...state,...settings};active=0;sync();rebuild();tab('jam');window.scrollTo({top:0,behavior:'smooth'});toast('Practice setup loaded — press Play when ready');}
 $('lessonCards').innerHTML=lessons.map((l,i)=>`<article class="lesson-card"><span class="tag">${l.tag}</span><h3>${l.title}</h3><p>${l.body}</p><p><strong>Move on when:</strong> ${l.goal}</p><button class="secondary" data-lesson="${i}">Load exercise →</button></article>`).join('');
 document.querySelectorAll('[data-lesson]').forEach(b=>b.onclick=()=>{const l=lessons[+b.dataset.lesson];loadPractice({key:l.blues?9:7,style:l.blues?'blues':'folk',degrees:[...PRESETS[l.blues?'blues':'folk'].patterns[0]],bpm:65,bars:1,sevenths:false,focus:l.focus,scale:l.scale,feel:l.blues?'shuffle':'straight'});});
-let seconds=1200,routineRunning=false,routineEnd=0;
-const stages=[{end:120,title:'Warm up · 2 minutes',text:'Play slowly through G major. Name and sing the notes. Stay relaxed.'},{end:480,title:'Follow the chord tones · 6 minutes',text:'Open the Jam room. Use G–D–Em–C at 65 BPM. First target roots, then thirds.'},{end:780,title:'Make a phrase · 5 minutes',text:'Play a one-bar question, then leave a bar of silence. Answer it with the same rhythm.'},{end:1080,title:'Connect the chords · 5 minutes',text:'Enable Show upcoming chord targets in the Jam room. Choose Thirds and plan your next landing on beat 1.'},{end:1200,title:'Review · 2 minutes',text:'Repeat your best phrase and save one discovery in your practice notes.'}];
-function renderTimer(){$('timer').textContent=`${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`;const st=stages.find(x=>1200-seconds<x.end)||stages[4];$('routineStage').textContent=seconds===0?'SESSION COMPLETE':st.title;$('routineText').textContent=seconds===0?'Good work. Save one discovery below, then build on it next time.':st.text;$('pauseRoutine').textContent=routineRunning?'Pause':'Resume';}
-$('startRoutine').onclick=()=>{if(routineRunning)return;if(seconds===0)seconds=1200;routineRunning=true;routineEnd=Date.now()+seconds*1000;renderTimer();};$('pauseRoutine').onclick=()=>{routineRunning=!routineRunning;if(routineRunning){if(seconds===0)seconds=1200;routineEnd=Date.now()+seconds*1000;}renderTimer();};$('resetRoutine').onclick=()=>{routineRunning=false;seconds=1200;renderTimer();};
-setInterval(()=>{if(!routineRunning)return;seconds=Math.max(0,Math.ceil((routineEnd-Date.now())/1000));if(seconds===0){routineRunning=false;toast('20-minute session complete — save your discovery.');}renderTimer();},500);
 function renderJournal(){$('journalEntries').replaceChildren();journal.slice(0,20).forEach(e=>{const div=document.createElement('div');div.className='entry';const date=document.createElement('small');date.textContent=new Date(e.date).toLocaleString();const text=document.createElement('div');text.textContent=e.text;div.append(date,text);$('journalEntries').append(div);});$('practiceStats').textContent=journal.length?`${journal.length} practice note${journal.length===1?'':'s'} saved · Keep showing up.`:'Your next 20 minutes start here.';}
 $('logSession').onclick=()=>{const text=$('journalText').value.trim();if(!text){toast('Write one discovery first.');return;}journal.unshift({date:new Date().toISOString(),text:text.slice(0,1500)});journal=journal.slice(0,100);$('journalText').value='';persist();renderJournal();toast('Practice note saved');};
-let ear=null,earCorrect=0,earTotal=0,earBusy=false,earTimer;
-async function soundEar(){if(!ear||earBusy)return;earBusy=true;$('newEar').disabled=true;$('replayEar').disabled=true;document.querySelectorAll('[data-answer]').forEach(b=>b.disabled=true);try{stop();await band.init();band.volume(state.volume/100);const t=band.ctx.currentTime+.08;[0,4,7].forEach(n=>band.tone(ear.root+n,t,.85,.09));band.tone(ear.root+[0,4,7][ear.answer]+12,t+1.15,.8,.16);earTimer=setTimeout(()=>{earBusy=false;$('newEar').disabled=false;$('replayEar').disabled=false;document.querySelectorAll('[data-answer]').forEach(b=>b.disabled=ear.done);},2050);}catch{earBusy=false;$('newEar').disabled=false;toast('Audio is unavailable.');}}
-$('newEar').onclick=()=>{ear={root:48+Math.floor(Math.random()*12),answer:Math.floor(Math.random()*3),done:false};$('earFeedback').textContent='Listen to the chord, then the single note…';soundEar();};$('replayEar').onclick=soundEar;
-document.querySelectorAll('[data-answer]').forEach(b=>b.onclick=()=>{if(!ear||ear.done||earBusy)return;ear.done=true;earTotal++;const correct=+b.dataset.answer===ear.answer;if(correct)earCorrect++;$('earFeedback').textContent=`${correct?'Correct!':'Keep listening.'} That was the ${['root','third','fifth'][ear.answer]} — ${note(ear.root+[0,4,7][ear.answer])} over ${note(ear.root)} major.`;$('earScore').textContent=`${earCorrect} / ${earTotal} correct this visit`;document.querySelectorAll('[data-answer]').forEach(x=>x.disabled=true);});
 document.addEventListener('keydown',e=>{if(e.code==='Space'&&!['INPUT','SELECT','TEXTAREA','BUTTON'].includes(e.target.tagName)&&!$('jam').hidden){e.preventDefault();play();}});
 // Stop when the tab is hidden: throttled background timers cannot guarantee accurate backing.
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&band.running){stop();$('playStatus').textContent='Paused because the tab was hidden';}});
 initAppearance();sync();rebuild();renderSaves();renderJournal();
-lab=initLab({stopJam:stop,getJam:()=>({chords,key:+state.key,volume:+state.volume}),toast});
+lab=initLab({stopJam:()=>{stop();foundations?.stop();},getJam:()=>({...state,chords,key:+state.key,volume:+state.volume}),toast});
+foundations=initFoundations({stopOthers:()=>{stop();lab?.stop();},loadJam:loadPractice,getMix:()=>({...state,volume:+state.volume}),toast});
+initPractice({toast,openAction:a=>{if(a.tab==='jam')loadPractice({bars:1,sevenths:false,focus:'all',feel:'straight',...a});else if(a.tab==='journal'){tab('learn');$('journalText').scrollIntoView({behavior:'smooth',block:'center'});$('journalText').focus({preventScroll:true});}else{tab(a.tab);if(a.tab==='scales')foundations.loadScale(a);if(a.tab==='chords')foundations.loadProgression(a.progression);if(a.tab==='licklab')lab.loadExercise(a);window.scrollTo({top:0,behavior:'smooth'});}}});

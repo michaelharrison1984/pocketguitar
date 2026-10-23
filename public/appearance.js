@@ -6,6 +6,10 @@ export const PALETTES={
 };
 export function ink(hex){const rgb=hex.match(/[a-f\d]{2}/gi).map(n=>parseInt(n,16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);const l=rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;return (l+.05)/.05>=1.05/(l+.05)?'#000000':'#ffffff';}
 export function initAppearance(){
+ const theme=document.getElementById('appTheme');let choice='forest';try{choice=localStorage.getItem('pocket-guitar-theme-v1')||choice;}catch{}
+ if(!['forest','midnight','studio','light'].includes(choice))choice='forest';theme.value=choice;document.documentElement.dataset.theme=choice;
+ theme.onchange=()=>{document.documentElement.dataset.theme=theme.value;try{localStorage.setItem('pocket-guitar-theme-v1',theme.value);}catch{}};
+
  let saved={};try{saved=JSON.parse(localStorage.getItem('pocket-guitar-appearance-v1')||'{}')||{};}catch{}
  let colours={...PALETTES.contrast};for(const k in colours)if(/^#[a-f\d]{6}$/i.test(saved[k]||''))colours[k]=saved[k];
  let size=['normal','large'].includes(saved.size)?saved.size:'large';

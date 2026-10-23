@@ -1,6 +1,6 @@
-import {Band} from './audio.js?v=1.3.0';
+import {Band} from './audio.js?v=1.4.0';
 import {KEYS,note,mod,intervalName} from './theory.js';
-import {LICKS,TUNING,midi,phraseFor,lickPlan,beatTime,scoreBeat,tabNote} from './licks.js?v=1.3.0';
+import {LICKS,TUNING,midi,phraseFor,lickPlan,beatTime,scoreBeat,tabNote} from './licks.js?v=1.4.0';
 const $=id=>document.getElementById(id);
 const posText=p=>`string ${p.string+1}, fret ${p.fret}`;
 export function initLab({stopJam,getJam,toast}){
@@ -38,8 +38,8 @@ export function initLab({stopJam,getJam,toast}){
  $('lickLearnt').onchange=()=>{learnt=learnt.filter(id=>id!==lick.id);if($('lickLearnt').checked)learnt.push(lick.id);try{localStorage.setItem('pocket-guitar-licks-v1',JSON.stringify(learnt));}catch{toast('Progress could not be saved in this browser.');}};
  $('lickPlay').onclick=async()=>{
   if(pending||labBand.running){stopAll();return;}stopAll();stopJam();refreshLick();pending=true;const attempt=++token;
-  try{await labBand.init();if(attempt!==token)return;await labBand.start({chords:plan.map(b=>b.chord),bpm:+$('lickBpm').value,bars:1,count:true,pattern:'pad',feel:lick.feel,drums:false,click:$('lickClick').checked,loop:$('lickLoop').checked,onSchedule:({ci,beat,time,spb})=>{const b=plan[ci];if(!b.demo)return;const notes=phraseFor(lick,+$('lickKey').value,b.chord,b.adapt);for(const e of notes)if(Math.floor(e.beat)===beat)for(const p of e.notes){const start=beatTime(e.beat,lick.feel),end=beatTime(e.beat+e.duration,lick.feel);labBand.lead(midi(p),time+(start-beat)*spb,(end-start)*spb*(e.gate||.94),{tone:lick.tone,accent:e.accent||1,vibrato:e.vibrato,tech:p.tech,release:p.release,targetMidi:p.toFret===undefined?undefined:TUNING[p.string]+p.toFret});}}});if(attempt!==token){labBand.stop();return;}labBand.volume(getJam().volume/100);labOrigin=labBand.next-labBand.index*(60/labBand.config.bpm);$('lickPlay').textContent='■ Stop lick';lastStep='';animate();}catch{labBand.stop();toast('Audio could not start.');}finally{pending=false;}
+  try{await labBand.init();if(attempt!==token)return;await labBand.start({...getJam(),chords:plan.map(b=>b.chord),bpm:+$('lickBpm').value,bars:1,count:true,pattern:'pad',feel:lick.feel,drums:false,click:$('lickClick').checked,loop:$('lickLoop').checked,onSchedule:({ci,beat,time,spb})=>{const b=plan[ci];if(!b.demo)return;const notes=phraseFor(lick,+$('lickKey').value,b.chord,b.adapt);for(const e of notes)if(Math.floor(e.beat)===beat)for(const p of e.notes){const start=beatTime(e.beat,lick.feel),end=beatTime(e.beat+e.duration,lick.feel);labBand.lead(midi(p),time+(start-beat)*spb,(end-start)*spb*(e.gate||.94),{tone:lick.tone,accent:e.accent||1,vibrato:e.vibrato,tech:p.tech,release:p.release,targetMidi:p.toFret===undefined?undefined:TUNING[p.string]+p.toFret});}}});if(attempt!==token){labBand.stop();return;}labBand.volume(getJam().volume/100);labOrigin=labBand.next-labBand.index*(60/labBand.config.bpm);$('lickPlay').textContent='■ Stop lick';lastStep='';animate();}catch{labBand.stop();toast('Audio could not start.');}finally{pending=false;}
  };
  document.addEventListener('visibilitychange',()=>{if(document.hidden)stopAll();});refreshLick();
- return {stop:stopAll,enter(){stopAll();}};
+ return {stop:stopAll,enter(){stopAll();},loadExercise(a){stopAll();lick=LICKS[a.lick]||LICKS[0];$('lickChoice').value=LICKS.indexOf(lick);$('lickKey').value=lick.baseKey;$('lickMode').value=a.mode;$('lickBpm').value=a.bpm;$('lickBpmText').textContent=a.bpm+' BPM';refreshLick();}};
 }

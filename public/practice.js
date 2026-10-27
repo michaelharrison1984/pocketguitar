@@ -1,7 +1,7 @@
-import {practiceActivity} from './wake.js?v=1.5.0';
-import {ROUTINES} from './foundations-data.js?v=1.5.0';
+import {practiceActivity} from './wake.js?v=1.6.0';
+import {ROUTINES} from './foundations-data.js?v=1.6.0';
 const $=id=>document.getElementById(id);
-export function initPractice({openAction,toast}){
+export function initPractice({openAction,toast,onProgress=()=>{}}){
  let level='beginner';try{level=localStorage.getItem('pocket-guitar-level-v1')||level;}catch{}if(!ROUTINES[level])level='beginner';
  let seconds=1200,running=false,end=0,started=false;
  function current(){let elapsed=1200-seconds,total=0;return ROUTINES[level].stages.find(s=>(total+=s.minutes*60)>elapsed)||ROUTINES[level].stages.at(-1);}
@@ -14,5 +14,5 @@ export function initPractice({openAction,toast}){
  $('openRoutineStage').onclick=$('dockExercise').onclick=()=>openAction(current().action);
  $('dockReturn').onclick=()=>document.querySelector('[data-tab="learn"]').click();
  $('skillLevel').onchange=()=>{level=$('skillLevel').value;seconds=1200;running=false;started=false;try{localStorage.setItem('pocket-guitar-level-v1',level);}catch{}cards();};
- setInterval(()=>{if(!running)return;const previous=current();seconds=Math.max(0,Math.ceil((end-Date.now())/1000));if(!seconds){running=false;toast('Session complete — save one discovery.');}else if(current()!==previous)toast(`Next: ${current().title}. Use Open exercise when ready.`);render();},500);cards();
+ setInterval(()=>{if(!running)return;const previous=current();seconds=Math.max(0,Math.ceil((end-Date.now())/1000));if(!seconds){running=false;try{localStorage.setItem('pocket-guitar-tutor-sessions-v1',String(1+(+localStorage.getItem('pocket-guitar-tutor-sessions-v1')||0)));}catch{}onProgress();toast('Session complete — save one discovery.');}else if(current()!==previous)toast(`Next: ${current().title}. Use Open exercise when ready.`);render();},500);cards();
 }

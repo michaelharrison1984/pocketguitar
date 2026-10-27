@@ -1,5 +1,5 @@
-import {practiceActivity} from './wake.js?v=1.5.0';
-import {SoundRack,normalMix} from './sound.js?v=1.5.0';
+import {practiceActivity} from './wake.js?v=1.6.0';
+import {SoundRack,normalMix} from './sound.js?v=1.6.0';
 const PATTERNS = new Set(['strum', 'arp', 'pad']);
 export class Band {
  constructor(onBeat,onStop){this.onBeat=onBeat;this.onStop=onStop;this.ctx=null;this.running=false;this.events=[];this.voices=new Set();}

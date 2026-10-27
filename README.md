@@ -172,3 +172,7 @@ node --test tests/*.test.js
 ```
 
 See `VERIFICATION.md` for the tests performed and remaining limitations.
+
+## v1.6.0 — Personal Tutor
+
+The default landing screen is **Today**, with guided routines in **Learn**, a consolidated **Practice** studio, and **Jam** for creative application. Existing tools, local storage keys and settings are preserved. Guided routine completion counts use a new browser-local key `pocket-guitar-tutor-sessions-v1`. Chord diagrams now use horizontal strings with high E at the top; their fret positions and finger numbers are rendered directly in that orientation. This release does not include audio-based performance assessment or automatically personalised lesson selection.

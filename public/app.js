@@ -1,15 +1,15 @@
-import {scaleBox,boxOptions,jamScaleType} from './boxes.js?v=1.5.0';
-import {chordShape,qualityFor} from './foundations-data.js?v=1.5.0';
-import {initWake} from './wake.js?v=1.5.0';
-import {initFoundations,diagram} from './foundations.js?v=1.5.0';
-import {initPractice} from './practice.js?v=1.5.0';
-import {MIX_DEFAULTS,MIX_PRESETS,normalMix} from './sound.js?v=1.5.0';
-import {upcomingTones} from './upcoming.js?v=1.5.0';
-import {initAppearance} from './appearance.js?v=1.5.0';
-import {initLab} from './lab.js?v=1.5.0';
+import {scaleBox,boxOptions,jamScaleType} from './boxes.js?v=1.6.0';
+import {chordShape,qualityFor} from './foundations-data.js?v=1.6.0';
+import {initWake} from './wake.js?v=1.6.0';
+import {initFoundations,diagram} from './foundations.js?v=1.6.0';
+import {initPractice} from './practice.js?v=1.6.0';
+import {MIX_DEFAULTS,MIX_PRESETS,normalMix} from './sound.js?v=1.6.0';
+import {upcomingTones} from './upcoming.js?v=1.6.0';
+import {initAppearance} from './appearance.js?v=1.6.0';
+import {initLab} from './lab.js?v=1.6.0';
 import {KEYS,PRESETS,mod,note,named,makeProgression,palette,nearestTarget,intervalName} from './theory.js';
-import {Band} from './audio.js?v=1.5.0';
-import {lessons} from './lessons.js?v=1.5.0';
+import {Band} from './audio.js?v=1.6.0';
+import {lessons} from './lessons.js?v=1.6.0';
 const $=id=>document.getElementById(id);
 let memory={};try{memory=JSON.parse(localStorage.getItem('pocket-guitar-v1')||'{}')||{};}catch{}
 const defaults={...MIX_DEFAULTS,mixPreset:'custom',key:7,style:'folk',bpm:80,bars:1,feel:'straight',pattern:'strum',sevenths:false,drums:true,click:false,count:true,volume:65,focus:'all',scale:'pent',box:'0',jamView:'tones',labels:'notes',lefty:false,showUpcoming:false,upcomingMode:'all',degrees:[0,4,5,3]};
@@ -78,7 +78,19 @@ $('save').onclick=()=>{const name=prompt('Name this setup',`${KEYS[state.key]} �
 $('saved').onchange=()=>{if($('saved').value==='')return;stop();state={...defaults,...structuredClone(saves[+$('saved').value].state)};active=0;sync();rebuild();};$('deleteSaved').onclick=()=>{if($('saved').value==='')return;saves.splice(+$('saved').value,1);$('saved').value='';persist();renderSaves();toast('Saved setup deleted');};
 function tab(id){stop();lab?.stop();foundations?.stop();document.querySelectorAll('.tab-panel').forEach(p=>p.hidden=p.id!==id);document.querySelectorAll('.tab').forEach(b=>{b.classList.toggle('active',b.dataset.tab===id);b.setAttribute('aria-current',b.dataset.tab===id?'page':'false');});}
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>tab(b.dataset.tab));
-function loadPractice(settings){stop();state={...state,...settings};active=0;sync();rebuild();tab('jam');window.scrollTo({top:0,behavior:'smooth'});toast('Practice setup loaded — press Play when ready');}
+const toolNames={scales:'Scales trainer',chords:'Chord library',licklab:'Lick Lab'};
+const originalTab=tab;
+// Tools remain independent panels, but are reached through the simplified Practice hub.
+const openArea=id=>{originalTab(id);$('toolBack').hidden=!toolNames[id];$('toolBreadcrumb').textContent=toolNames[id]||'';window.scrollTo({top:0,behavior:'smooth'});};
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>openArea(b.dataset.tab));
+document.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>openArea(b.dataset.open));
+$('backToPractice').onclick=()=>openArea('practiceHub');
+$('todayExplore').onclick=()=>openArea('learn');
+$('todayStart').onclick=()=>{openArea('learn');$('startRoutine').scrollIntoView({behavior:'smooth',block:'center'});};
+function refreshTutor(){const level=localStorage.getItem('pocket-guitar-level-v1')||'beginner';$('todayLevel').textContent=level==='improv'?'Intermediate · Improvisation':level[0].toUpperCase()+level.slice(1);const count=+(localStorage.getItem('pocket-guitar-tutor-sessions-v1')||0);$('todayCompleted').textContent=`${count} guided session${count===1?'':'s'} completed`;$('todayProgress').style.width=`${Math.min(100,count*10)}%`;$('todayHeading').textContent=count?'Welcome back — keep building':'Your first guided practice';$('todayDescription').textContent='Follow a 20-minute routine, then apply the skill in the studio or Jam Room.';}
+$('skillLevel').addEventListener('change',refreshTutor);
+
+function loadPractice(settings){stop();state={...state,...settings};active=0;sync();rebuild();openArea('jam');window.scrollTo({top:0,behavior:'smooth'});toast('Practice setup loaded — press Play when ready');}
 $('lessonCards').innerHTML=lessons.map((l,i)=>`<article class="lesson-card"><span class="tag">${l.tag}</span><h3>${l.title}</h3><p>${l.body}</p><p><strong>Move on when:</strong> ${l.goal}</p><button class="secondary" data-lesson="${i}">Load exercise →</button></article>`).join('');
 document.querySelectorAll('[data-lesson]').forEach(b=>b.onclick=()=>{const l=lessons[+b.dataset.lesson];loadPractice({key:l.blues?9:7,style:l.blues?'blues':'folk',degrees:[...PRESETS[l.blues?'blues':'folk'].patterns[0]],bpm:65,bars:1,sevenths:false,focus:l.focus,scale:l.scale,box:'0',jamView:'tones',feel:l.blues?'shuffle':'straight'});});
 function renderJournal(){$('journalEntries').replaceChildren();journal.slice(0,20).forEach(e=>{const div=document.createElement('div');div.className='entry';const date=document.createElement('small');date.textContent=new Date(e.date).toLocaleString();const text=document.createElement('div');text.textContent=e.text;div.append(date,text);$('journalEntries').append(div);});$('practiceStats').textContent=journal.length?`${journal.length} practice note${journal.length===1?'':'s'} saved · Keep showing up.`:'Your next 20 minutes start here.';}
@@ -89,4 +101,6 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&band.runni
 initWake();initAppearance();sync();rebuild();renderSaves();renderJournal();
 lab=initLab({stopJam:()=>{stop();foundations?.stop();},getJam:()=>({...state,chords,key:+state.key,volume:+state.volume}),toast});
 foundations=initFoundations({stopOthers:()=>{stop();lab?.stop();},loadJam:loadPractice,getMix:()=>({...state,volume:+state.volume}),toast});
-initPractice({toast,openAction:a=>{if(a.tab==='jam')loadPractice({bars:1,sevenths:false,focus:'all',feel:'straight',...a});else if(a.tab==='journal'){tab('learn');$('journalText').scrollIntoView({behavior:'smooth',block:'center'});$('journalText').focus({preventScroll:true});}else{tab(a.tab);if(a.tab==='scales')foundations.loadScale(a);if(a.tab==='chords')foundations.loadProgression(a.progression);if(a.tab==='licklab')lab.loadExercise(a);window.scrollTo({top:0,behavior:'smooth'});}}});
+initPractice({toast,onProgress:refreshTutor,openAction:a=>{if(a.tab==='jam')loadPractice({bars:1,sevenths:false,focus:'all',feel:'straight',...a});else if(a.tab==='journal'){openArea('learn');$('journalText').scrollIntoView({behavior:'smooth',block:'center'});$('journalText').focus({preventScroll:true});}else{openArea(a.tab);if(a.tab==='scales')foundations.loadScale(a);if(a.tab==='chords')foundations.loadProgression(a.progression);if(a.tab==='licklab')lab.loadExercise(a);window.scrollTo({top:0,behavior:'smooth'});}}});
+
+refreshTutor();openArea('today');

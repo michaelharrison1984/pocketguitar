@@ -1,17 +1,21 @@
-import {scaleBox,boxOptions} from './boxes.js?v=1.5.0';
-import {Band} from './audio.js?v=1.5.0';
+import {scaleBox,boxOptions} from './boxes.js?v=1.6.0';
+import {Band} from './audio.js?v=1.6.0';
 import {KEYS,note,mod,makeProgression} from './theory.js';
-import {SCALES,OPEN,QUALITIES,PROGRESSIONS,scaleNotes,scaleSequence,chordShape,shapePitches,qualityFor} from './foundations-data.js?v=1.5.0';
+import {SCALES,OPEN,QUALITIES,PROGRESSIONS,scaleNotes,scaleSequence,chordShape,shapePitches,qualityFor} from './foundations-data.js?v=1.6.0';
 const $=id=>document.getElementById(id);
 export function diagram(shape){
- const pressed=shape.frets.filter(f=>f>0),start=Math.min(...pressed)>3?Math.min(...pressed):1,rows=Math.max(4,Math.max(...pressed)-start+1),w=260,h=75+rows*42;
- let svg=`<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${shape.name} chord, frets low E to high e: ${shape.frets.map(f=>f<0?'mute':f).join(', ')}"><title>${shape.name} · ${shape.kind}</title>`;
- for(let i=0;i<6;i++){const x=45+i*34;svg+=`<text x="${x}" y="15" text-anchor="middle" fill="var(--muted)" font-size="12">${['E','A','D','G','B','e'][i]}</text><line x1="${x}" y1="53" x2="${x}" y2="${53+rows*42}" stroke="var(--muted)"/>`;if(shape.frets[i]<=0)svg+=`<text x="${x}" y="40" text-anchor="middle" fill="var(--text)" font-size="19">${shape.frets[i]<0?'×':'○'}</text>`;}
- for(let i=0;i<=rows;i++)svg+=`<line x1="45" x2="215" y1="${53+i*42}" y2="${53+i*42}" stroke="var(--muted)" stroke-width="${i===0&&start===1?5:1}"/>`;
- if(start>1)svg+=`<text x="17" y="78" fill="var(--text)" font-size="12">${start}fr</text>`;
- if(shape.barre){const y=53+(shape.barre.fret-start+.5)*42;svg+=`<line x1="${45+shape.barre.from*34}" x2="${45+shape.barre.to*34}" y1="${y}" y2="${y}" stroke="var(--fb-chord)" stroke-width="21" stroke-linecap="round"/>`;}
- shape.frets.forEach((f,i)=>{if(f<=0)return;const x=45+i*34,y=53+(f-start+.5)*42,root=mod(OPEN[5-i]+f)===shape.root;svg+=`<circle cx="${x}" cy="${y}" r="13" fill="var(--fb-${root?'root':'chord'})"/><text x="${x}" y="${y+4}" text-anchor="middle" font-size="13" font-weight="700" fill="var(--fb-${root?'root':'chord'}-ink)">${shape.fingers[i]||'•'}</text>`;});return svg+'</svg>';
+ const pressed=shape.frets.filter(f=>f>0),start=pressed.length&&Math.min(...pressed)>3?Math.min(...pressed):1;
+ const rows=Math.max(4,Math.max(start,...pressed)-start+1), left=43,top=35,step=39,width=left+rows*step+22,height=180;
+ let svg=`<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${shape.name} chord diagram. High E at top, low E at bottom. Frets from nut to right: ${shape.frets.map(f=>f<0?'muted':f).join(', ')}"><title>${shape.name} · ${shape.kind}</title>`;
+ // Reverse the six-string display order while preserving the original low-E-first shape data.
+ for(let row=0;row<6;row++){const i=5-row,y=top+row*25;svg+=`<text x="9" y="${y+4}" fill="var(--muted)" font-size="11">${['e','B','G','D','A','E'][row]}</text><line x1="${left}" y1="${y}" x2="${left+rows*step}" y2="${y}" stroke="var(--muted)"/>`;if(shape.frets[i]<=0)svg+=`<text x="${left-16}" y="${y+5}" text-anchor="middle" fill="var(--text)" font-size="17">${shape.frets[i]<0?'×':'○'}</text>`;}
+ for(let fret=0;fret<=rows;fret++){const x=left+fret*step;svg+=`<line x1="${x}" y1="${top}" x2="${x}" y2="${top+125}" stroke="var(--muted)" stroke-width="${fret===0&&start===1?5:1}"/>`;}
+ if(start>1)svg+=`<text x="${left+step/2}" y="20" text-anchor="middle" fill="var(--text)" font-size="12">${start}fr</text>`;
+ if(shape.barre){const x=left+(shape.barre.fret-start+.5)*step,y1=top+(5-shape.barre.to)*25,y2=top+(5-shape.barre.from)*25;svg+=`<line x1="${x}" x2="${x}" y1="${y1}" y2="${y2}" stroke="var(--fb-chord)" stroke-width="20" stroke-linecap="round"/>`;}
+ shape.frets.forEach((f,i)=>{if(f<=0)return;const x=left+(f-start+.5)*step,y=top+(5-i)*25,root=mod(OPEN[5-i]+f)===shape.root;svg+=`<circle cx="${x}" cy="${y}" r="12" fill="var(--fb-${root?'root':'chord'})"/><text x="${x}" y="${y+4}" text-anchor="middle" font-size="12" font-weight="700" fill="var(--fb-${root?'root':'chord'}-ink)">${shape.fingers[i]||'•'}</text>`;});
+ return svg+'</svg>';
 }
+
 export function initFoundations({stopOthers,loadJam,getMix,toast}){
  let stored={};try{stored=JSON.parse(localStorage.getItem('pocket-guitar-foundations-v1')||'{}')||{};}catch{}
  const controls=['scaleKey','scaleType','scaleBox','scaleDirection','scaleTempo','scaleRepeat','scaleClick','scaleHide','scaleAll','chordRoot','chordQuality','chordVoicing','chordProgression','chordTempo','chordBars'];

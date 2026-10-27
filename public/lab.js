@@ -1,7 +1,7 @@
-import {closestBox} from './boxes.js?v=1.5.0';
-import {Band} from './audio.js?v=1.5.0';
+import {closestBox} from './boxes.js?v=1.6.0';
+import {Band} from './audio.js?v=1.6.0';
 import {KEYS,note,mod,intervalName} from './theory.js';
-import {LICKS,TUNING,midi,phraseFor,lickPlan,beatTime,scoreBeat,tabNote} from './licks.js?v=1.5.0';
+import {LICKS,TUNING,midi,phraseFor,lickPlan,beatTime,scoreBeat,tabNote} from './licks.js?v=1.6.0';
 const $=id=>document.getElementById(id);
 const posText=p=>`string ${p.string+1}, fret ${p.fret}`;
 export function initLab({stopJam,getJam,toast}){
